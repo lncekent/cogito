@@ -1,4 +1,4 @@
-# 🌐 [Project Title]
+# 🌐 Cogito
 
 ![Home Page](ImageLinkHere)
 
