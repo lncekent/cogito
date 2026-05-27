@@ -1,6 +1,6 @@
 # 🧠 Cogito
 
-![Home Page](ImageLinkHere)
+![Home Page](https://res.cloudinary.com/dxatb3m2q/image/upload/v1779891857/Screenshot_2026-05-27_194842_groxax.png)
 
 > Transform any PDF into an instant study experience — flashcards, quizzes, and more.
 
