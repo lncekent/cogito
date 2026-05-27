@@ -1,0 +1,6 @@
+{
+  "name": "Cogito",
+  "description": "An elegant full-stack PDF-to-Quiz and Flashcard generator using Gemini 3.5.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
