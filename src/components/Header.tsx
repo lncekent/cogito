@@ -1,4 +1,11 @@
-import { GraduationCap, ArrowLeft, RefreshCw, BookOpen, LogOut, User } from "lucide-react";
+import {
+  GraduationCap,
+  ArrowLeft,
+  RefreshCw,
+  BookOpen,
+  LogOut,
+  User,
+} from "lucide-react";
 
 interface HeaderProps {
   onBack?: () => void;
@@ -11,20 +18,19 @@ interface HeaderProps {
   onLogout?: () => void;
 }
 
-export default function Header({ 
-  onBack, 
-  showBack = false, 
-  topic, 
-  onResetAll, 
-  userEmail, 
-  onLoginClick, 
-  onSignUpClick, 
-  onLogout 
+export default function Header({
+  onBack,
+  showBack = false,
+  topic,
+  onResetAll,
+  userEmail,
+  onLoginClick,
+  onSignUpClick,
+  onLogout,
 }: HeaderProps) {
   return (
     <header className="border-b border-slate-100 bg-white/70 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        
         {/* Left Section */}
         <div className="flex items-center space-x-3">
           {showBack && onBack ? (
@@ -36,11 +42,11 @@ export default function Header({
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
             </button>
           ) : (
-            <div className="h-9 w-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden animate-[pulse_3s_infinite]">
+            <div className="h-9 w-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden">
               <GraduationCap className="h-5 w-5 text-slate-100" />
             </div>
           )}
-          
+
           <div className="flex flex-col text-left">
             <div className="flex items-center space-x-2">
               <span className="font-display font-bold text-lg tracking-tight text-slate-950">
@@ -50,7 +56,7 @@ export default function Header({
                 V3.5
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-sans truncate max-w-[200px] sm:max-w-none">
+            <p className="text-[11px] text-slate-400 font-sans truncate max-w-50 sm:max-w-none">
               {topic ? (
                 <span className="font-medium text-slate-600">{topic}</span>
               ) : (
@@ -76,8 +82,13 @@ export default function Header({
           {userEmail ? (
             <div className="flex items-center space-x-1 sm:space-x-2.5">
               <div className="hidden xs:flex flex-col text-right items-end">
-                <span className="text-[10px] text-slate-400 font-mono font-bold leading-none uppercase">STUDENT PROFILE</span>
-                <span className="text-[11px] font-medium text-slate-800 line-clamp-1 max-w-[110px]" title={userEmail}>
+                <span className="text-[10px] text-slate-400 font-mono font-bold leading-none uppercase">
+                  STUDENT PROFILE
+                </span>
+                <span
+                  className="text-[11px] font-medium text-slate-800 line-clamp-1 max-w-27.5"
+                  title={userEmail}
+                >
                   {userEmail}
                 </span>
               </div>
@@ -111,7 +122,7 @@ export default function Header({
             </div>
           )}
 
-          <span className="w-[1px] h-4 bg-slate-200 hidden sm:inline"></span>
+          <span className="w-px h-4 bg-slate-200 hidden sm:inline"></span>
 
           <a
             href="https://ai.studio/build"
@@ -124,9 +135,7 @@ export default function Header({
             <span className="hidden xs:inline">AI Studio Build</span>
           </a>
         </div>
-
       </div>
     </header>
   );
 }
-
