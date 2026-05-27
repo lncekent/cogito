@@ -183,7 +183,7 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
         )}
         {successMsg && (
           <div className="mb-4 bg-emerald-50 border border-emerald-100/50 p-3 rounded-xl text-[11px] text-emerald-800 font-sans leading-snug flex items-start space-x-1.5">
-            <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
             <span>{successMsg}</span>
           </div>
         )}

@@ -49,7 +49,7 @@ export default function AboutMe({ onBackToHome }: AboutMeProps) {
         </div>
         <h1 className="cogito-title text-4xl sm:text-5xl mb-2">
           Crafting High-Fidelity <br />
-          <span className="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-800 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-slate-950 via-indigo-950 to-slate-800 bg-clip-text text-transparent">
             Synaptic Experiences
           </span>
         </h1>

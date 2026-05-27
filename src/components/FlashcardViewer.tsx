@@ -247,7 +247,7 @@ export default function FlashcardViewer({ flashcards, topic, summary, onBack }: 
             
             <div 
               onClick={toggleFlip}
-              className="w-full h-[340px] perspective-1000 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 rounded-3xl"
+              className="w-full h-85 perspective-1000 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 rounded-3xl"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === ' ' || e.key === 'Enter') {
@@ -389,7 +389,7 @@ export default function FlashcardViewer({ flashcards, topic, summary, onBack }: 
               <BookMarked className="h-3.5 w-3.5" />
               <span>Jump To Card</span>
             </h4>
-            <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-75 overflow-y-auto pr-1">
               {flashcards.map((card, idx) => {
                 const isCurrent = idx === currentIndex;
                 const isMastered = masteredIds.has(card.id);
@@ -411,10 +411,10 @@ export default function FlashcardViewer({ flashcards, topic, summary, onBack }: 
                     </div>
 
                     {isMastered && (
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 flex-shrink-0" title="Mastered"></span>
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" title="Mastered"></span>
                     )}
                     {isPractice && (
-                      <span className="h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0" title="Needs Practice"></span>
+                      <span className="h-2 w-2 rounded-full bg-indigo-500 shrink-0" title="Needs Practice"></span>
                     )}
                   </button>
                 );
