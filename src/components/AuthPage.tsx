@@ -14,7 +14,7 @@ import {
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 interface AuthPageProps {
-  onAuthSuccess: (userEmail: string) => void;
+  onAuthSuccess: (userEmail: string, userId?: string) => void;
   onBackToApp: () => void;
   initialMode?: 'login' | 'signup';
 }
@@ -52,7 +52,7 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
           if (data.user) {
             setSuccessMsg("Registration initiated successfully! A verification email has been dispatched (if enabled) or you are now logged in.");
             setTimeout(() => {
-              onAuthSuccess(email);
+              onAuthSuccess(email, data.user?.id);
             }, 1800);
           }
         } else {
@@ -65,7 +65,7 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
           if (data.user) {
             setSuccessMsg("Authentication verified! Loading dashboard...");
             setTimeout(() => {
-              onAuthSuccess(data.user?.email || email);
+              onAuthSuccess(data.user?.email || email, data.user?.id);
             }, 1000);
           }
         }

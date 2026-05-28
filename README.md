@@ -40,7 +40,7 @@ Cogito is a web-based AI-powered quiz and flashcard generator built for students
    ```dotenv
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   VITE_GEMINI_API_KEY=your_gemini_api_key
+   GEMINI_API_KEY=your_gemini_api_key
    ```
 7. Run the project: `npm run dev`
    > 💡 **Note:** The server runs at `http://localhost:3000`
@@ -52,7 +52,7 @@ Cogito is a web-based AI-powered quiz and flashcard generator built for students
 |---|---|
 | `VITE_SUPABASE_URL` | Your Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase publishable/anon key |
-| `VITE_GEMINI_API_KEY` | Your Google Gemini API key |
+| `GEMINI_API_KEY` | Your Google Gemini API key used by the Express server |
 
 ## 🗄️ Database Setup
 

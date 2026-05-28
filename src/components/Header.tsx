@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   RefreshCw,
   BookOpen,
+  History,
   LogOut,
   User,
 } from "lucide-react";
@@ -16,6 +17,7 @@ interface HeaderProps {
   onLoginClick?: () => void;
   onSignUpClick?: () => void;
   onLogout?: () => void;
+  onHistoryClick?: () => void;
 }
 
 export default function Header({
@@ -27,6 +29,7 @@ export default function Header({
   onLoginClick,
   onSignUpClick,
   onLogout,
+  onHistoryClick,
 }: HeaderProps) {
   return (
     <header className="border-b border-slate-100 bg-white/70 backdrop-blur-md sticky top-0 z-50">
@@ -81,6 +84,15 @@ export default function Header({
           {/* User Auth Section */}
           {userEmail ? (
             <div className="flex items-center space-x-1 sm:space-x-2.5">
+              {onHistoryClick && (
+                <button
+                  onClick={onHistoryClick}
+                  className="flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-slate-950 hover:bg-slate-50 transition-all cursor-pointer"
+                  title="Open Study History"
+                >
+                  <History className="h-4 w-4" />
+                </button>
+              )}
               <div className="hidden xs:flex flex-col text-right items-end">
                 <span className="text-[10px] text-slate-400 font-mono font-bold leading-none uppercase">
                   STUDENT PROFILE

@@ -6,7 +6,14 @@ import FlashcardViewer from "./components/FlashcardViewer";
 import QuizViewer from "./components/QuizViewer";
 import AboutMe from "./components/AboutMe";
 import AuthPage from "./components/AuthPage";
-import { Flashcard, QuizQuestion, AppMode, Difficulty } from "./types";
+import HistoryPanel, { StudySessionRecord } from "./components/HistoryPanel";
+import {
+  Flashcard,
+  QuizQuestion,
+  AppMode,
+  Difficulty,
+  GenerationResponse,
+} from "./types";
 import {
   GraduationCap,
   ArrowUpRight,
@@ -31,7 +38,9 @@ export default function App() {
 
   // Authenticated User State parameters
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState<"login" | "signup" | null>(null);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
 
   useEffect(() => {
     // Listen to real-time session updates from Supabase
@@ -39,6 +48,7 @@ export default function App() {
       supabase.auth.getUser().then(({ data }) => {
         if (data.user?.email) {
           setUserEmail(data.user.email);
+          setUserId(data.user.id);
         }
       });
 
@@ -46,8 +56,11 @@ export default function App() {
         (_event, session) => {
           if (session?.user?.email) {
             setUserEmail(session.user.email);
+            setUserId(session.user.id);
           } else {
             setUserEmail(null);
+            setUserId(null);
+            setShowHistory(false);
           }
         },
       );
@@ -57,6 +70,88 @@ export default function App() {
       };
     }
   }, []);
+
+  const saveGenerationForSignedInUser = async (
+    params: {
+      mode: AppMode;
+      count: number;
+      difficulty: Difficulty;
+      text?: string;
+      fileBase64?: string;
+      fileName?: string;
+      presetKey?: string;
+    },
+    data: GenerationResponse,
+  ) => {
+    if (!isSupabaseConfigured || !supabase || !userId) return;
+
+    const generatedItems =
+      params.mode === "flashcards" ? data.flashcards || [] : data.quiz || [];
+
+    if (generatedItems.length === 0) return;
+
+    const sourceType = params.presetKey ? "preset" : params.fileName ? "pdf" : "text";
+    const sourceTitle =
+      params.presetKey || params.fileName || params.text?.slice(0, 80) || "Pasted notes";
+
+    const { data: session, error: sessionError } = await supabase
+      .from("study_sessions")
+      .insert({
+        user_id: userId,
+        mode: params.mode,
+        difficulty: params.difficulty,
+        topic: data.topic || "Generated Topic",
+        summary: data.summary || null,
+        source_type: sourceType,
+        source_title: sourceTitle,
+        item_count: generatedItems.length,
+      })
+      .select("id")
+      .single();
+
+    if (sessionError) throw sessionError;
+
+    const rows: Array<{
+      session_id: string;
+      item_type: "quiz" | "flashcard";
+      question: string;
+      answer: string | null;
+      hint: string | null;
+      options: string[] | null;
+      correct_answer_index: number | null;
+      explanation: string | null;
+      position: number;
+    }> =
+      params.mode === "flashcards"
+        ? (data.flashcards || []).map((card, index) => ({
+            session_id: session.id,
+            item_type: "flashcard",
+            question: card.question,
+            answer: card.answer,
+            hint: card.hint || null,
+            options: null,
+            correct_answer_index: null,
+            explanation: null,
+            position: index,
+          }))
+        : (data.quiz || []).map((question, index) => ({
+            session_id: session.id,
+            item_type: "quiz",
+            question: question.question,
+            answer: null,
+            hint: null,
+            options: question.options,
+            correct_answer_index: question.correctAnswerIndex,
+            explanation: question.explanation,
+            position: index,
+          }));
+
+    const { error: itemsError } = await supabase
+      .from("generated_items")
+      .insert(rows);
+
+    if (itemsError) throw itemsError;
+  };
 
   const handleGenerate = async (params: {
     mode: AppMode;
@@ -99,6 +194,14 @@ export default function App() {
         setQuiz(data.quiz || null);
         setFlashcards(null); // Clean opposite mode
       }
+
+      if (userId) {
+        try {
+          await saveGenerationForSignedInUser(params, data);
+        } catch (saveErr) {
+          console.warn("Generation succeeded, but saving history failed:", saveErr);
+        }
+      }
     } catch (err: any) {
       console.error("App Generation Error:", err);
       setError(
@@ -117,6 +220,24 @@ export default function App() {
     setQuiz(null);
     setError(null);
     setIsLoading(false);
+    setShowHistory(false);
+  };
+
+  const openSavedSession = (payload: {
+    session: StudySessionRecord;
+    flashcards?: Flashcard[];
+    quiz?: QuizQuestion[];
+  }) => {
+    setTopic(payload.session.topic);
+    setSummary(payload.session.summary || "Saved study session.");
+    setActiveMode(payload.session.mode);
+    setFlashcards(payload.flashcards || null);
+    setQuiz(payload.quiz || null);
+    setError(null);
+    setIsLoading(false);
+    setShowAbout(false);
+    setShowAuth(null);
+    setShowHistory(false);
   };
 
   return (
@@ -131,6 +252,8 @@ export default function App() {
         topic={
           showAbout
             ? "About the Developer"
+            : showHistory
+              ? "Study History"
             : showAuth
               ? `${showAuth === "login" ? "Access Account" : "Register with Cogito"}`
               : topic || undefined
@@ -138,6 +261,8 @@ export default function App() {
         onBack={() => {
           if (showAbout) {
             setShowAbout(false);
+          } else if (showHistory) {
+            setShowHistory(false);
           } else if (showAuth) {
             setShowAuth(null);
           } else {
@@ -146,6 +271,7 @@ export default function App() {
         }}
         showBack={
           showAbout ||
+          showHistory ||
           !!showAuth ||
           !!(flashcards || quiz || error || isLoading)
         }
@@ -153,29 +279,47 @@ export default function App() {
         userEmail={userEmail}
         onLoginClick={() => {
           setShowAbout(false);
+          setShowHistory(false);
           setShowAuth("login");
         }}
         onSignUpClick={() => {
           setShowAbout(false);
+          setShowHistory(false);
           setShowAuth("signup");
+        }}
+        onHistoryClick={() => {
+          setShowAbout(false);
+          setShowAuth(null);
+          setShowHistory(true);
+          setTopic(null);
+          setSummary(null);
+          setFlashcards(null);
+          setQuiz(null);
+          setError(null);
+          setIsLoading(false);
         }}
         onLogout={async () => {
           if (isSupabaseConfigured && supabase) {
             await supabase.auth.signOut();
           }
           setUserEmail(null);
+          setUserId(null);
+          setShowHistory(false);
         }}
       />
 
       <main className="flex-1 relative z-10 flex flex-col justify-center">
         {showAbout ? (
           <AboutMe onBackToHome={() => setShowAbout(false)} />
+        ) : showHistory ? (
+          <HistoryPanel onOpenSession={openSavedSession} />
         ) : showAuth ? (
           <AuthPage
             initialMode={showAuth}
             onBackToApp={() => setShowAuth(null)}
-            onAuthSuccess={(email) => {
+            onAuthSuccess={(email, id) => {
               setUserEmail(email);
+              if (id) setUserId(id);
               setShowAuth(null);
             }}
           />
