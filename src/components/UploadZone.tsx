@@ -450,7 +450,7 @@ export default function UploadZone({
           <span>
             {isLoading
               ? "Synthesizing study artifacts..."
-              : "Instruct Gemini to Generate"}
+              : "Instruct AI to Generate"}
           </span>
         </button>
       </form>

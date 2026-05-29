@@ -133,16 +133,22 @@ export default function AuthPage({
     <div className="max-w-md mx-auto py-8 px-4 sm:px-6 text-left animate-fade-in relative z-10">
       {/* Brand logo header */}
       <div className="text-center mb-4">
-        <div className="h-12 w-12 rounded-2xl bg-slate-950 flex items-center justify-center text-white mx-auto shadow-sm mb-4">
-          <GraduationCap className="h-6 w-6 text-slate-100" />
+        <div className="flex items-center justify-center gap-3">
+          <div className="flex">
+            <div className="h-12 w-12 rounded-2xl bg-slate-950 flex items-center justify-center text-white mx-auto shadow-sm">
+              <GraduationCap className="h-6 w-6 text-slate-100" />
+            </div>
+          </div>
+
+          <h2 className="font-display font-extrabold text-2xl text-slate-950 tracking-tight">
+            Cogito
+          </h2>
         </div>
-        <h2 className="font-display font-extrabold text-2xl text-slate-950 tracking-tight">
-          {authMode === "login" ? "Access Cogito Account" : "Join Cogito Synth"}
-        </h2>
+        {/* 
         <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto font-sans leading-relaxed">
           Unlock high-fidelity flashcard synthesis, custom evaluated questions,
           and historic workspace synchs.
-        </p>
+        </p> */}
       </div>
       {/* Return back home pointer */}
       <div className="text-center mb-4">
@@ -179,7 +185,7 @@ export default function AuthPage({
       )}
 
       {/* Primary form wrapper component */}
-      <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-7 shadow-sm">
+      <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-7 shadow-sm w-87.5">
         {/* Toggle Mode headers */}
         <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 mb-6">
           <button

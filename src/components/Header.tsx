@@ -36,16 +36,16 @@ export default function Header({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center space-x-3">
-            <div className="h-9 w-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden">
-              <GraduationCap className="h-5 w-5 text-slate-100" />
-            </div>
+          <div className="h-9 w-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden">
+            <GraduationCap className="h-5 w-5 text-slate-100" />
+          </div>
           <div className="flex flex-col text-left">
             <div className="flex items-center space-x-2">
               <span className="font-display font-bold text-lg tracking-tight text-slate-950">
                 Cogito
               </span>
               <span className="text-[10px] font-mono uppercase tracking-widest bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-medium">
-                V3.5
+                V1.0
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-sans truncate max-w-50 sm:max-w-none  lg:block hidden">

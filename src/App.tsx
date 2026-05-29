@@ -90,9 +90,16 @@ export default function App() {
 
     if (generatedItems.length === 0) return;
 
-    const sourceType = params.presetKey ? "preset" : params.fileName ? "pdf" : "text";
+    const sourceType = params.presetKey
+      ? "preset"
+      : params.fileName
+        ? "pdf"
+        : "text";
     const sourceTitle =
-      params.presetKey || params.fileName || params.text?.slice(0, 80) || "Pasted notes";
+      params.presetKey ||
+      params.fileName ||
+      params.text?.slice(0, 80) ||
+      "Pasted notes";
 
     const { data: session, error: sessionError } = await supabase
       .from("study_sessions")
@@ -199,7 +206,10 @@ export default function App() {
         try {
           await saveGenerationForSignedInUser(params, data);
         } catch (saveErr) {
-          console.warn("Generation succeeded, but saving history failed:", saveErr);
+          console.warn(
+            "Generation succeeded, but saving history failed:",
+            saveErr,
+          );
         }
       }
     } catch (err: any) {
@@ -248,65 +258,69 @@ export default function App() {
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[40%] rounded-full bg-slate-100/30 blur-[100px]" />
       </div>
 
-      <Header
-        topic={
-          showAbout
-            ? "About the Developer"
-            : showHistory
-              ? "Study History"
-            : showAuth
-              ? `${showAuth === "login" ? "Access Account" : "Register with Cogito"}`
-              : topic || undefined
-        }
-        onBack={() => {
-          if (showAbout) {
+      {!showAuth && (
+        <Header
+          topic={
+            showAbout
+              ? "About the Developer"
+              : showHistory
+                ? "Study History"
+                : showAuth
+                  ? `${showAuth === "login" ? "Access Account" : "Register with Cogito"}`
+                  : topic || undefined
+          }
+          onBack={() => {
+            if (showAbout) {
+              setShowAbout(false);
+            } else if (showHistory) {
+              setShowHistory(false);
+            } else if (showAuth) {
+              setShowAuth(null);
+            } else {
+              handleReset();
+            }
+          }}
+          showBack={
+            showAbout ||
+            showHistory ||
+            !!showAuth ||
+            !!(flashcards || quiz || error || isLoading)
+          }
+          onResetAll={
+            topic && !showAbout && !showAuth ? handleReset : undefined
+          }
+          userEmail={userEmail}
+          onLoginClick={() => {
             setShowAbout(false);
-          } else if (showHistory) {
             setShowHistory(false);
-          } else if (showAuth) {
+            setShowAuth("login");
+          }}
+          onSignUpClick={() => {
+            setShowAbout(false);
+            setShowHistory(false);
+            setShowAuth("signup");
+          }}
+          onHistoryClick={() => {
+            setShowAbout(false);
             setShowAuth(null);
-          } else {
-            handleReset();
-          }
-        }}
-        showBack={
-          showAbout ||
-          showHistory ||
-          !!showAuth ||
-          !!(flashcards || quiz || error || isLoading)
-        }
-        onResetAll={topic && !showAbout && !showAuth ? handleReset : undefined}
-        userEmail={userEmail}
-        onLoginClick={() => {
-          setShowAbout(false);
-          setShowHistory(false);
-          setShowAuth("login");
-        }}
-        onSignUpClick={() => {
-          setShowAbout(false);
-          setShowHistory(false);
-          setShowAuth("signup");
-        }}
-        onHistoryClick={() => {
-          setShowAbout(false);
-          setShowAuth(null);
-          setShowHistory(true);
-          setTopic(null);
-          setSummary(null);
-          setFlashcards(null);
-          setQuiz(null);
-          setError(null);
-          setIsLoading(false);
-        }}
-        onLogout={async () => {
-          if (isSupabaseConfigured && supabase) {
-            await supabase.auth.signOut();
-          }
-          setUserEmail(null);
-          setUserId(null);
-          setShowHistory(false);
-        }}
-      />
+            setShowHistory(true);
+            setTopic(null);
+            setSummary(null);
+            setFlashcards(null);
+            setQuiz(null);
+            setError(null);
+            setIsLoading(false);
+          }}
+          onLogout={async () => {
+            if (isSupabaseConfigured && supabase) {
+              await supabase.auth.signOut();
+            }
+            setUserEmail(null);
+            setUserId(null);
+            setShowHistory(false);
+          }}
+        />
+      )}
 
       <main className="flex-1 relative z-10 flex flex-col justify-center">
         {showAbout ? (
@@ -398,10 +412,10 @@ export default function App() {
       {/* Tidy minimal Swiss branding style footer */}
       <footer className="border-t border-slate-100 bg-white/40 py-4 relative z-10 text-center text-[11px] text-slate-400 font-mono tracking-wide">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4">
-            <p className="flex items-center space-x-1">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 ">
+            <p className="flex items-center space-x-3">
               <GraduationCap className="h-3.5 w-3.5 text-slate-700" />
-              <span>© 2026 Cogito Inc. • Synaptic Study Synthesis.</span>
+              <span>@ 2026 Lance Magollado • Synaptic Study Synthesis.</span>
             </p>
             <span className="hidden sm:inline text-slate-200">|</span>
             <div className="flex items-center space-x-3 text-slate-500">
@@ -446,12 +460,12 @@ export default function App() {
           <p className="flex items-center space-x-2">
             <span className="text-slate-300">•</span>
             <a
-              href="https://ai.studio/build"
+              href="https://lancekent.dev"
               className="hover:underline text-slate-500 flex items-center space-x-0.5"
               target="_blank"
               rel="noreferrer"
             >
-              <span>Verify Core Capabilities</span>
+              <span>View Developer's Other Projects</span>
               <ArrowUpRight className="h-2.5 w-2.5" />
             </a>
           </p>
