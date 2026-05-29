@@ -1,28 +1,32 @@
 import React, { useState } from "react";
-import { 
-  KeyRound, 
-  Mail, 
-  Chrome, 
-  ArrowLeft, 
-  Info, 
-  CheckCircle, 
-  GraduationCap, 
+import {
+  KeyRound,
+  Mail,
+  Chrome,
+  ArrowLeft,
+  Info,
+  CheckCircle,
+  GraduationCap,
   Sparkles,
   Lock,
-  ArrowRight
+  ArrowRight,
 } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 interface AuthPageProps {
   onAuthSuccess: (userEmail: string, userId?: string) => void;
   onBackToApp: () => void;
-  initialMode?: 'login' | 'signup';
+  initialMode?: "login" | "signup";
 }
 
-export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'login' }: AuthPageProps) {
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>(initialMode);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function AuthPage({
+  onAuthSuccess,
+  onBackToApp,
+  initialMode = "login",
+}: AuthPageProps) {
+  const [authMode, setAuthMode] = useState<"login" | "signup">(initialMode);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -42,15 +46,17 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
     // If Supabase is real & configured
     if (isSupabaseConfigured && supabase) {
       try {
-        if (authMode === 'signup') {
+        if (authMode === "signup") {
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
           });
           if (error) throw error;
-          
+
           if (data.user) {
-            setSuccessMsg("Registration initiated successfully! A verification email has been dispatched (if enabled) or you are now logged in.");
+            setSuccessMsg(
+              "Registration initiated successfully! A verification email has been dispatched (if enabled) or you are now logged in.",
+            );
             setTimeout(() => {
               onAuthSuccess(email, data.user?.id);
             }, 1800);
@@ -61,7 +67,7 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
             password,
           });
           if (error) throw error;
-          
+
           if (data.user) {
             setSuccessMsg("Authentication verified! Loading dashboard...");
             setTimeout(() => {
@@ -78,7 +84,9 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
       // Simulate authentic flow immediately inside container previews
       setTimeout(() => {
         setLoading(false);
-        setSuccessMsg(`Welcome to Cogito! Simulation authenticated successfully as: ${email}`);
+        setSuccessMsg(
+          `Welcome to Cogito! Simulation authenticated successfully as: ${email}`,
+        );
         setTimeout(() => {
           onAuthSuccess(email);
         }, 1200);
@@ -90,26 +98,30 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
   const handleGoogleAuth = async () => {
     setLoading(true);
     setErrorMsg(null);
-    
+
     if (isSupabaseConfigured && supabase) {
       try {
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
+          provider: "google",
           options: {
-            redirectTo: window.location.origin
-          }
+            redirectTo: window.location.origin,
+          },
         });
         if (error) throw error;
       } catch (err: any) {
-        setErrorMsg(err.message || "Failed to trigger Google authentication provider.");
+        setErrorMsg(
+          err.message || "Failed to trigger Google authentication provider.",
+        );
         setLoading(false);
       }
     } else {
-      // Sandbox Simulator 
+      // Sandbox Simulator
       setTimeout(() => {
         setLoading(false);
         const tempEmail = "googler.student@example.com";
-        setSuccessMsg(`Welcome! Google Account linked successfully: ${tempEmail}`);
+        setSuccessMsg(
+          `Welcome! Google Account linked successfully: ${tempEmail}`,
+        );
         setTimeout(() => {
           onAuthSuccess(tempEmail);
         }, 1200);
@@ -119,20 +131,31 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
 
   return (
     <div className="max-w-md mx-auto py-8 px-4 sm:px-6 text-left animate-fade-in relative z-10">
-      
       {/* Brand logo header */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-4">
         <div className="h-12 w-12 rounded-2xl bg-slate-950 flex items-center justify-center text-white mx-auto shadow-sm mb-4">
           <GraduationCap className="h-6 w-6 text-slate-100" />
         </div>
         <h2 className="font-display font-extrabold text-2xl text-slate-950 tracking-tight">
-          {authMode === 'login' ? "Access Cogito Account" : "Join Cogito Synth"}
+          {authMode === "login" ? "Access Cogito Account" : "Join Cogito Synth"}
         </h2>
         <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto font-sans leading-relaxed">
-          Unlock high-fidelity flashcard synthesis, custom evaluated questions, and historic workspace synchs.
+          Unlock high-fidelity flashcard synthesis, custom evaluated questions,
+          and historic workspace synchs.
         </p>
       </div>
-
+      {/* Return back home pointer */}
+      <div className="text-center mb-4">
+        <button
+          onClick={onBackToApp}
+          className="inline-flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-900"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span className="underline cursor-pointer">
+            Return back to Study materials
+          </span>
+        </button>
+      </div>
       {/* Supabase Status Helper banner */}
       {!isSupabaseConfigured && (
         <div className="mb-6 bg-slate-50 border border-slate-200/60 rounded-2xl p-4 text-[11px] text-slate-600 leading-normal">
@@ -141,34 +164,50 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
             <span>Interactive Auth Mock mode Active</span>
           </div>
           <p className="text-[10.5px]">
-            Configure <code className="font-mono bg-white px-1 border rounded text-[9px]">VITE_SUPABASE_URL</code> and <code className="font-mono bg-white px-1 border rounded text-[9px]">VITE_SUPABASE_ANON_KEY</code> in the Settings to connect your actual live Supabase backend database!
+            Configure{" "}
+            <code className="font-mono bg-white px-1 border rounded text-[9px]">
+              VITE_SUPABASE_URL
+            </code>{" "}
+            and{" "}
+            <code className="font-mono bg-white px-1 border rounded text-[9px]">
+              VITE_SUPABASE_ANON_KEY
+            </code>{" "}
+            in the Settings to connect your actual live Supabase backend
+            database!
           </p>
         </div>
       )}
 
       {/* Primary form wrapper component */}
       <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-7 shadow-sm">
-        
         {/* Toggle Mode headers */}
         <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 mb-6">
           <button
             type="button"
-            onClick={() => { setAuthMode('login'); setErrorMsg(null); setSuccessMsg(null); }}
+            onClick={() => {
+              setAuthMode("login");
+              setErrorMsg(null);
+              setSuccessMsg(null);
+            }}
             className={`py-2 px-3 text-center rounded-xl text-xs font-mono font-bold transition-all ${
-              authMode === 'login' 
-                ? 'bg-slate-950 text-white shadow-sm' 
-                : 'text-slate-500 hover:text-slate-800'
+              authMode === "login"
+                ? "bg-slate-950 text-white shadow-sm"
+                : "text-slate-500 hover:text-slate-800"
             }`}
           >
             Log In
           </button>
           <button
             type="button"
-            onClick={() => { setAuthMode('signup'); setErrorMsg(null); setSuccessMsg(null); }}
+            onClick={() => {
+              setAuthMode("signup");
+              setErrorMsg(null);
+              setSuccessMsg(null);
+            }}
             className={`py-2 px-3 text-center rounded-xl text-xs font-mono font-bold transition-all ${
-              authMode === 'signup' 
-                ? 'bg-slate-950 text-white shadow-sm' 
-                : 'text-slate-500 hover:text-slate-800'
+              authMode === "signup"
+                ? "bg-slate-950 text-white shadow-sm"
+                : "text-slate-500 hover:text-slate-800"
             }`}
           >
             Sign Up
@@ -214,7 +253,6 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
 
         {/* SECONDARY ACTION: EMAIL FORM */}
         <form onSubmit={handleAuthSubmit} className="space-y-4">
-          
           {/* Email input field */}
           <div className="flex flex-col">
             <label className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center space-x-1">
@@ -255,7 +293,13 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
             disabled={loading}
             className="w-full flex items-center justify-center space-x-1.5 py-3.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold font-mono uppercase tracking-wider transition-all disabled:opacity-50 mt-2 cursor-pointer"
           >
-            <span>{loading ? "Authorizing access..." : (authMode === 'login' ? "PROCEED TO APPS" : "CREATE MY ACCOUNT")}</span>
+            <span>
+              {loading
+                ? "Authorizing access..."
+                : authMode === "login"
+                  ? "PROCEED TO APPS"
+                  : "CREATE MY ACCOUNT"}
+            </span>
             <ArrowRight className="h-3.5 w-3.5" />
           </button>
 
@@ -274,22 +318,8 @@ export default function AuthPage({ onAuthSuccess, onBackToApp, initialMode = 'lo
               </button>
             </div>
           )}
-
         </form>
-
       </div>
-
-      {/* Return back home pointer */}
-      <div className="text-center mt-5">
-        <button
-          onClick={onBackToApp}
-          className="inline-flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-900"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Return back to Study materials</span>
-        </button>
-      </div>
-
     </div>
   );
 }

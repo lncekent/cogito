@@ -36,20 +36,9 @@ export default function Header({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center space-x-3">
-          {showBack && onBack ? (
-            <button
-              onClick={onBack}
-              className="group flex items-center justify-center p-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-slate-100 transition-all duration-200"
-              title="Return to Study Materials Setup"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-            </button>
-          ) : (
             <div className="h-9 w-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden">
               <GraduationCap className="h-5 w-5 text-slate-100" />
             </div>
-          )}
-
           <div className="flex flex-col text-left">
             <div className="flex items-center space-x-2">
               <span className="font-display font-bold text-lg tracking-tight text-slate-950">
@@ -59,7 +48,7 @@ export default function Header({
                 V3.5
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-sans truncate max-w-50 sm:max-w-none">
+            <p className="text-[11px] text-slate-400 font-sans truncate max-w-50 sm:max-w-none  lg:block hidden">
               {topic ? (
                 <span className="font-medium text-slate-600">{topic}</span>
               ) : (

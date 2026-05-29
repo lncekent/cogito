@@ -168,7 +168,7 @@ export default function UploadZone({
               <span>Personalized study profile pending</span>
             </div>
             <h2 className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-white leading-tight">
-              Connect Supabase to Sync Progress
+              Create an account to sync progress
             </h2>
             <p className="text-[11.5px] text-slate-400 font-sans leading-relaxed">
               Register or Log in to organize generated study materials, save
