@@ -34,6 +34,8 @@ export default function App() {
   // Authenticated User State parameters
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState<"login" | "signup" | null>(null);
   const [showHistory, setShowHistory] = useState<boolean>(false);
 
@@ -43,24 +45,42 @@ export default function App() {
     });
   };
 
+  const applyUserProfile = (user: any | null) => {
+    if (!user?.email) {
+      setUserEmail(null);
+      setUserId(null);
+      setUserDisplayName(null);
+      setUserAvatarUrl(null);
+      return;
+    }
+
+    const metadata = user.user_metadata || {};
+    setUserEmail(user.email);
+    setUserId(user.id);
+    setUserDisplayName(
+      metadata.full_name ||
+        metadata.name ||
+        metadata.preferred_username ||
+        null,
+    );
+    setUserAvatarUrl(metadata.avatar_url || metadata.picture || null);
+  };
+
   useEffect(() => {
     // Listen to real-time session updates from Supabase
     if (isSupabaseConfigured && supabase) {
       supabase.auth.getUser().then(({ data }) => {
         if (data.user?.email) {
-          setUserEmail(data.user.email);
-          setUserId(data.user.id);
+          applyUserProfile(data.user);
         }
       });
 
       const { data: authListener } = supabase.auth.onAuthStateChange(
         (_event, session) => {
           if (session?.user?.email) {
-            setUserEmail(session.user.email);
-            setUserId(session.user.id);
+            applyUserProfile(session.user);
           } else {
-            setUserEmail(null);
-            setUserId(null);
+            applyUserProfile(null);
             setShowHistory(false);
           }
         },
@@ -358,6 +378,8 @@ export default function App() {
               : undefined
           }
           userEmail={userEmail}
+          userDisplayName={userDisplayName}
+          userAvatarUrl={userAvatarUrl}
           onLoginClick={() => goToAuth("login")}
           onSignUpClick={() => goToAuth("signup")}
           onHistoryClick={goToHistory}
@@ -366,8 +388,7 @@ export default function App() {
             if (isSupabaseConfigured && supabase) {
               await supabase.auth.signOut();
             }
-            setUserEmail(null);
-            setUserId(null);
+            applyUserProfile(null);
             setShowHistory(false);
           }}
         />
@@ -387,9 +408,19 @@ export default function App() {
           <AuthPage
             initialMode={showAuth}
             onBackToApp={goHome}
-            onAuthSuccess={(email, id) => {
-              setUserEmail(email);
-              if (id) setUserId(id);
+            onAuthSuccess={async (email, id) => {
+              if (isSupabaseConfigured && supabase) {
+                const { data } = await supabase.auth.getUser();
+                if (data.user) {
+                  applyUserProfile(data.user);
+                } else {
+                  setUserEmail(email);
+                  if (id) setUserId(id);
+                }
+              } else {
+                setUserEmail(email);
+                if (id) setUserId(id);
+              }
               setShowAuth(null);
               scrollToPageTop();
             }}
@@ -481,7 +512,7 @@ export default function App() {
             <div className="flex items-center space-x-3 text-slate-500">
               <button
                 onClick={goHome}
-                className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${!showAbout && !showAuth && !showHistory ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
+                className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${!showAbout && !showAuth && !showHistory && !showGuide ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
               >
                 Home
               </button>
@@ -491,6 +522,13 @@ export default function App() {
                 className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${showAbout ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
               >
                 About Developer
+              </button>
+              <span>•</span>
+              <button
+                onClick={goToGuide}
+                className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${showGuide ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
+              >
+                Guide
               </button>
             </div>
           </div>
