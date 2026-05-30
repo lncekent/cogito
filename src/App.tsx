@@ -5,6 +5,7 @@ import Loader from "./components/Loader";
 import FlashcardViewer from "./components/FlashcardViewer";
 import QuizViewer from "./components/QuizViewer";
 import AboutMe from "./components/AboutMe";
+import Guide from "./components/Guide";
 import AuthPage from "./components/AuthPage";
 import HistoryPanel, { StudySessionRecord } from "./components/HistoryPanel";
 import {
@@ -22,6 +23,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showAbout, setShowAbout] = useState<boolean>(false);
+  const [showGuide, setShowGuide] = useState<boolean>(false);
 
   // Storage for generated resources
   const [topic, setTopic] = useState<string | null>(null);
@@ -229,11 +231,14 @@ export default function App() {
     setQuiz(null);
     setError(null);
     setIsLoading(false);
+    setShowAbout(false);
+    setShowGuide(false);
     setShowHistory(false);
   };
 
   const goHome = () => {
     setShowAbout(false);
+    setShowGuide(false);
     setShowAuth(null);
     handleReset();
     scrollToPageTop();
@@ -241,6 +246,21 @@ export default function App() {
 
   const goToAbout = () => {
     setShowAbout(true);
+    setShowGuide(false);
+    setShowAuth(null);
+    setShowHistory(false);
+    setTopic(null);
+    setSummary(null);
+    setFlashcards(null);
+    setQuiz(null);
+    setError(null);
+    setIsLoading(false);
+    scrollToPageTop();
+  };
+
+  const goToGuide = () => {
+    setShowGuide(true);
+    setShowAbout(false);
     setShowAuth(null);
     setShowHistory(false);
     setTopic(null);
@@ -254,6 +274,7 @@ export default function App() {
 
   const goToAuth = (mode: "login" | "signup") => {
     setShowAbout(false);
+    setShowGuide(false);
     setShowHistory(false);
     setShowAuth(mode);
     scrollToPageTop();
@@ -261,6 +282,7 @@ export default function App() {
 
   const goToHistory = () => {
     setShowAbout(false);
+    setShowGuide(false);
     setShowAuth(null);
     setShowHistory(true);
     setTopic(null);
@@ -285,6 +307,7 @@ export default function App() {
     setError(null);
     setIsLoading(false);
     setShowAbout(false);
+    setShowGuide(false);
     setShowAuth(null);
     setShowHistory(false);
     scrollToPageTop();
@@ -303,18 +326,16 @@ export default function App() {
           topic={
             showAbout
               ? "About the Developer"
-              : showHistory
-                ? "Study History"
-                : showAuth
-                  ? `${showAuth === "login" ? "Access Account" : "Register with Cogito"}`
-                  : topic || undefined
+              : showGuide
+                ? "System Guide"
+                : showHistory
+                  ? "Study History"
+                  : showAuth
+                    ? `${showAuth === "login" ? "Access Account" : "Register with Cogito"}`
+                    : topic || undefined
           }
           onBack={() => {
-            if (showAbout) {
-              goHome();
-            } else if (showHistory) {
-              goHome();
-            } else if (showAuth) {
+            if (showAbout || showGuide || showHistory || showAuth) {
               goHome();
             } else {
               handleReset();
@@ -323,12 +344,13 @@ export default function App() {
           }}
           showBack={
             showAbout ||
+            showGuide ||
             showHistory ||
             !!showAuth ||
             !!(flashcards || quiz || error || isLoading)
           }
           onResetAll={
-            topic && !showAbout && !showAuth
+            topic && !showAbout && !showGuide && !showAuth
               ? () => {
                   handleReset();
                   scrollToPageTop();
@@ -339,6 +361,7 @@ export default function App() {
           onLoginClick={() => goToAuth("login")}
           onSignUpClick={() => goToAuth("signup")}
           onHistoryClick={goToHistory}
+          onGuideClick={goToGuide}
           onLogout={async () => {
             if (isSupabaseConfigured && supabase) {
               await supabase.auth.signOut();
@@ -353,6 +376,8 @@ export default function App() {
       <main className="flex-1 relative z-10 flex flex-col justify-center">
         {showAbout ? (
           <AboutMe onBackToHome={goHome} />
+        ) : showGuide ? (
+          <Guide onBackToHome={goHome} />
         ) : showHistory ? (
           <HistoryPanel
             onBackToHome={goHome}

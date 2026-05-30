@@ -18,6 +18,7 @@ interface HeaderProps {
   onSignUpClick?: () => void;
   onLogout?: () => void;
   onHistoryClick?: () => void;
+  onGuideClick?: () => void;
 }
 
 export default function Header({
@@ -30,6 +31,7 @@ export default function Header({
   onSignUpClick,
   onLogout,
   onHistoryClick,
+  onGuideClick,
 }: HeaderProps) {
   return (
     <header className="border-b border-slate-100 bg-white/70 backdrop-blur-md sticky top-0 z-50">
@@ -49,7 +51,7 @@ export default function Header({
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-sans truncate max-w-50 sm:max-w-none  lg:block hidden">
-                "PDF Quiz & Flashcard Synthesizer"
+              "PDF Quiz & Flashcard Synthesizer"
             </p>
           </div>
         </div>
@@ -112,7 +114,7 @@ export default function Header({
               </button>
               <button
                 onClick={onSignUpClick}
-                className="px-3 py-1.5 text-xs font-mono font-bold text-white bg-slate-950 hover:bg-slate-900 rounded-xl transition-all cursor-pointer"
+                className="px-3 py-1.5 lg:block hidden text-xs font-mono font-bold text-white bg-slate-950 hover:bg-slate-900 rounded-xl transition-all cursor-pointer"
               >
                 Sign Up
               </button>
@@ -121,16 +123,15 @@ export default function Header({
 
           <span className="w-px h-4 bg-slate-200 hidden sm:inline"></span>
 
-          <a
-            href="https://ai.studio/build"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center h-8 px-3 rounded-lg bg-slate-50 hover:bg-slate-100 text-xs text-slate-600 font-medium transition-all"
-            referrerPolicy="no-referrer"
-          >
-            <BookOpen className="h-3.5 w-3.5 mr-1" />
-            <span className="hidden xs:inline">AI Studio Build</span>
-          </a>
+          {onGuideClick && (
+            <button
+              onClick={onGuideClick}
+              className="flex items-center h-8 px-3 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-xs text-indigo-700 font-bold transition-all cursor-pointer border border-indigo-100/50"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">System Guide</span>
+            </button>
+          )}
         </div>
       </div>
     </header>
