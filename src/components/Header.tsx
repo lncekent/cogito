@@ -49,11 +49,7 @@ export default function Header({
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-sans truncate max-w-50 sm:max-w-none  lg:block hidden">
-              {topic ? (
-                <span className="font-medium text-slate-600">{topic}</span>
-              ) : (
                 "PDF Quiz & Flashcard Synthesizer"
-              )}
             </p>
           </div>
         </div>

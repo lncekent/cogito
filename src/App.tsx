@@ -14,14 +14,7 @@ import {
   Difficulty,
   GenerationResponse,
 } from "./types";
-import {
-  GraduationCap,
-  ArrowUpRight,
-  Github,
-  Info,
-  BookOpen,
-  User,
-} from "lucide-react";
+import { GraduationCap, ArrowUpRight, Info } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
 
 export default function App() {
@@ -41,6 +34,12 @@ export default function App() {
   const [userId, setUserId] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState<"login" | "signup" | null>(null);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+
+  const scrollToPageTop = () => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+  };
 
   useEffect(() => {
     // Listen to real-time session updates from Supabase
@@ -233,6 +232,46 @@ export default function App() {
     setShowHistory(false);
   };
 
+  const goHome = () => {
+    setShowAbout(false);
+    setShowAuth(null);
+    handleReset();
+    scrollToPageTop();
+  };
+
+  const goToAbout = () => {
+    setShowAbout(true);
+    setShowAuth(null);
+    setShowHistory(false);
+    setTopic(null);
+    setSummary(null);
+    setFlashcards(null);
+    setQuiz(null);
+    setError(null);
+    setIsLoading(false);
+    scrollToPageTop();
+  };
+
+  const goToAuth = (mode: "login" | "signup") => {
+    setShowAbout(false);
+    setShowHistory(false);
+    setShowAuth(mode);
+    scrollToPageTop();
+  };
+
+  const goToHistory = () => {
+    setShowAbout(false);
+    setShowAuth(null);
+    setShowHistory(true);
+    setTopic(null);
+    setSummary(null);
+    setFlashcards(null);
+    setQuiz(null);
+    setError(null);
+    setIsLoading(false);
+    scrollToPageTop();
+  };
+
   const openSavedSession = (payload: {
     session: StudySessionRecord;
     flashcards?: Flashcard[];
@@ -248,6 +287,7 @@ export default function App() {
     setShowAbout(false);
     setShowAuth(null);
     setShowHistory(false);
+    scrollToPageTop();
   };
 
   return (
@@ -271,13 +311,14 @@ export default function App() {
           }
           onBack={() => {
             if (showAbout) {
-              setShowAbout(false);
+              goHome();
             } else if (showHistory) {
-              setShowHistory(false);
+              goHome();
             } else if (showAuth) {
-              setShowAuth(null);
+              goHome();
             } else {
               handleReset();
+              scrollToPageTop();
             }
           }}
           showBack={
@@ -287,30 +328,17 @@ export default function App() {
             !!(flashcards || quiz || error || isLoading)
           }
           onResetAll={
-            topic && !showAbout && !showAuth ? handleReset : undefined
+            topic && !showAbout && !showAuth
+              ? () => {
+                  handleReset();
+                  scrollToPageTop();
+                }
+              : undefined
           }
           userEmail={userEmail}
-          onLoginClick={() => {
-            setShowAbout(false);
-            setShowHistory(false);
-            setShowAuth("login");
-          }}
-          onSignUpClick={() => {
-            setShowAbout(false);
-            setShowHistory(false);
-            setShowAuth("signup");
-          }}
-          onHistoryClick={() => {
-            setShowAbout(false);
-            setShowAuth(null);
-            setShowHistory(true);
-            setTopic(null);
-            setSummary(null);
-            setFlashcards(null);
-            setQuiz(null);
-            setError(null);
-            setIsLoading(false);
-          }}
+          onLoginClick={() => goToAuth("login")}
+          onSignUpClick={() => goToAuth("signup")}
+          onHistoryClick={goToHistory}
           onLogout={async () => {
             if (isSupabaseConfigured && supabase) {
               await supabase.auth.signOut();
@@ -324,17 +352,21 @@ export default function App() {
 
       <main className="flex-1 relative z-10 flex flex-col justify-center">
         {showAbout ? (
-          <AboutMe onBackToHome={() => setShowAbout(false)} />
+          <AboutMe onBackToHome={goHome} />
         ) : showHistory ? (
-          <HistoryPanel onOpenSession={openSavedSession} />
+          <HistoryPanel
+            onBackToHome={goHome}
+            onOpenSession={openSavedSession}
+          />
         ) : showAuth ? (
           <AuthPage
             initialMode={showAuth}
-            onBackToApp={() => setShowAuth(null)}
+            onBackToApp={goHome}
             onAuthSuccess={(email, id) => {
               setUserEmail(email);
               if (id) setUserId(id);
               setShowAuth(null);
+              scrollToPageTop();
             }}
           />
         ) : isLoading ? (
@@ -371,7 +403,10 @@ export default function App() {
 
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-2">
               <button
-                onClick={handleReset}
+                onClick={() => {
+                  handleReset();
+                  scrollToPageTop();
+                }}
                 className="w-full sm:w-auto px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-all cursor-pointer"
               >
                 Go Back to Setup
@@ -383,28 +418,28 @@ export default function App() {
             flashcards={flashcards}
             topic={topic || "Generated Topic"}
             summary={summary || "Overview description."}
-            onBack={handleReset}
+            onBack={() => {
+              handleReset();
+              scrollToPageTop();
+            }}
           />
         ) : quiz ? (
           <QuizViewer
             quiz={quiz}
             topic={topic || "Generated Topic"}
             summary={summary || "Overview description."}
-            onBack={handleReset}
+            onBack={() => {
+              handleReset();
+              scrollToPageTop();
+            }}
           />
         ) : (
           <UploadZone
             onGenerate={handleGenerate}
             isLoading={isLoading}
             userEmail={userEmail}
-            onLoginClick={() => {
-              setShowAbout(false);
-              setShowAuth("login");
-            }}
-            onSignUpClick={() => {
-              setShowAbout(false);
-              setShowAuth("signup");
-            }}
+            onLoginClick={() => goToAuth("login")}
+            onSignUpClick={() => goToAuth("signup")}
           />
         )}
       </main>
@@ -420,40 +455,18 @@ export default function App() {
             <span className="hidden sm:inline text-slate-200">|</span>
             <div className="flex items-center space-x-3 text-slate-500">
               <button
-                onClick={() => {
-                  setShowAbout(false);
-                  setShowAuth(null);
-                }}
-                className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${!showAbout && !showAuth ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
+                onClick={goHome}
+                className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${!showAbout && !showAuth && !showHistory ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
               >
                 Home
               </button>
               <span>•</span>
               <button
-                onClick={() => {
-                  setShowAbout(true);
-                  setShowAuth(null);
-                }}
+                onClick={goToAbout}
                 className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${showAbout ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
               >
                 About Developer
               </button>
-              <span>•</span>
-              {userEmail ? (
-                <span className="text-slate-400 font-mono text-[10px]">
-                  Logged In
-                </span>
-              ) : (
-                <button
-                  onClick={() => {
-                    setShowAbout(false);
-                    setShowAuth("login");
-                  }}
-                  className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${showAuth ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
-                >
-                  Log In / Sign Up
-                </button>
-              )}
             </div>
           </div>
 

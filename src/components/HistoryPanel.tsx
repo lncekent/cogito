@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   AlertCircle,
+  ArrowLeft,
   BookOpen,
   CalendarClock,
   FileText,
@@ -36,6 +37,7 @@ interface GeneratedItemRecord {
 }
 
 interface HistoryPanelProps {
+  onBackToHome: () => void;
   onOpenSession: (payload: {
     session: StudySessionRecord;
     flashcards?: Flashcard[];
@@ -43,7 +45,10 @@ interface HistoryPanelProps {
   }) => void;
 }
 
-export default function HistoryPanel({ onOpenSession }: HistoryPanelProps) {
+export default function HistoryPanel({
+  onBackToHome,
+  onOpenSession,
+}: HistoryPanelProps) {
   const [sessions, setSessions] = useState<StudySessionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [openingId, setOpeningId] = useState<string | null>(null);
@@ -128,6 +133,19 @@ export default function HistoryPanel({ onOpenSession }: HistoryPanelProps) {
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 animate-fade-in w-full">
+      <div className=" mb-4">
+        <button
+          type="button"
+          onClick={onBackToHome}
+          className="inline-flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-900"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span className="underline cursor-pointer">
+            Return back to Study materials
+          </span>
+        </button>
+      </div>
+
       <div className="border-b border-slate-100 pb-5 mb-6 text-left">
         <span className="inline-flex items-center space-x-1.5 text-[10px] bg-slate-950 text-white font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full font-bold">
           <CalendarClock className="h-3 w-3" />
