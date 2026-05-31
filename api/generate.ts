@@ -11,37 +11,16 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { mode, count, difficulty, text, fileBase64, fileName, presetKey } =
-    req.body;
+  const { mode, count, difficulty, text, fileName, presetKey } = req.body;
 
-  let pdfText = "";
-  if (fileBase64) {
-    try {
-      // @ts-ignore
-      const pdf = (await import("pdf-parse")).default;
-      const cleanBase64 = fileBase64.replace(
-        /^data:application\/pdf;base64,/,
-        "",
-      );
-      const buffer = Buffer.from(cleanBase64, "base64");
-      const pdfData = await pdf(buffer);
-      pdfText = pdfData.text || "";
-    } catch (parseError: any) {
-      console.error("PDF parse error:", parseError);
-      return res.status(400).json({
-        error:
-          "PDF parsing is unavailable on the server. Please paste your text directly in the notes field instead!",
-      });
-    }
-  }
-
-  // Get the actual text content
-  const contentText = text || pdfText || presetKey || "";
+  // Frontend already extracts PDF text and sends it as "text"
+  // No server-side PDF parsing needed!
+  const contentText = text || presetKey || "";
 
   if (!contentText) {
     return res.status(400).json({
       error:
-        "No content or readable text was found. Please upload a selectable text PDF or write/paste some notes.",
+        "No content found. Please upload a readable PDF or paste your notes directly.",
     });
   }
 
@@ -84,7 +63,6 @@ ${
     const data = await response.json();
     console.log("OpenRouter response:", JSON.stringify(data, null, 2));
 
-    // Safety check on OpenRouter response
     if (!data.choices || !data.choices[0]) {
       throw new Error(
         "OpenRouter returned empty response: " + JSON.stringify(data),
@@ -92,8 +70,6 @@ ${
     }
 
     const rawText = data.choices[0].message.content;
-
-    // Clean up markdown code blocks if present
     const cleaned = rawText
       .replace(/```json/gi, "")
       .replace(/```/g, "")
@@ -112,7 +88,6 @@ ${
       throw new Error("AI response did not return a valid array of questions.");
     }
 
-    // Map and sanitize to match what App.tsx expects
     const questions = rawQuestions.map((item: any, idx: number) => {
       const id = item.id || `gen-${mode}-${idx}-${Date.now()}`;
 
@@ -130,7 +105,6 @@ ${
             ? item.correctAnswerIndex
             : 0;
 
-        // Try to find correct answer by matching text if index not provided
         if (typeof item.correctAnswerIndex !== "number" && item.answer) {
           const foundIdx = options.findIndex(
             (opt: string) =>
@@ -150,7 +124,6 @@ ${
       }
     });
 
-    // Return what frontend expects
     res.status(200).json({
       success: true,
       [mode === "flashcards" ? "flashcards" : "quiz"]: questions,
