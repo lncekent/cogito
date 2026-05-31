@@ -167,28 +167,6 @@ export default function AuthPage({
         </p> */}
       </div>
 
-      {/* Supabase Status Helper banner */}
-      {!isSupabaseConfigured && (
-        <div className="mb-6 bg-slate-50 border border-slate-200/60 rounded-2xl p-4 text-[11px] text-slate-600 leading-normal">
-          <div className="flex items-center space-x-1 text-slate-800 font-semibold mb-1">
-            <Info className="h-3.5 w-3.5 text-indigo-600" />
-            <span>Interactive Auth Mock mode Active</span>
-          </div>
-          <p className="text-[10.5px]">
-            Configure{" "}
-            <code className="font-mono bg-white px-1 border rounded text-[9px]">
-              VITE_SUPABASE_URL
-            </code>{" "}
-            and{" "}
-            <code className="font-mono bg-white px-1 border rounded text-[9px]">
-              VITE_SUPABASE_ANON_KEY
-            </code>{" "}
-            in the Settings to connect your actual live Supabase backend
-            database!
-          </p>
-        </div>
-      )}
-
       {/* Primary form wrapper component */}
       <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-7 shadow-sm w-87.5">
         {/* Toggle Mode headers */}
