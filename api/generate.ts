@@ -35,7 +35,7 @@ ${
           "X-Title": "Cogito",
         },
         body: JSON.stringify({
-          model: "nvidia/nemotron-3-super-120b-a12b:free",
+          model: "openai/gpt-oss-120b:free",
           messages: [{ role: "user", content: prompt }],
         }),
       },
