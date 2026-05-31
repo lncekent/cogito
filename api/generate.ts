@@ -9,7 +9,7 @@ export default async function handler(req: any, res: any) {
     const { text, mode, count, level } = req.body;
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
     const prompt = `You are a quiz generator. Based on the following text, generate ${count} ${mode} questions at ${level} difficulty level. Return ONLY valid JSON array, no markdown, no explanation.
     
