@@ -1,5 +1,10 @@
-// @ts-ignore
-import pdf from "pdf-parse";
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
@@ -11,24 +16,27 @@ export default async function handler(req: any, res: any) {
 
   let pdfText = "";
   if (fileBase64) {
-    const cleanBase64 = fileBase64.replace(
-      /^data:application\/pdf;base64,/,
-      "",
-    );
-    const buffer = Buffer.from(cleanBase64, "base64");
     try {
+      // @ts-ignore
+      const pdf = (await import("pdf-parse")).default;
+      const cleanBase64 = fileBase64.replace(
+        /^data:application\/pdf;base64,/,
+        "",
+      );
+      const buffer = Buffer.from(cleanBase64, "base64");
       const pdfData = await pdf(buffer);
       pdfText = pdfData.text || "";
     } catch (parseError: any) {
-      console.error("PDF text extraction failed:", parseError);
-      return res.status(500).json({
-        error: "Failed to extract text from PDF: " + parseError.message,
+      console.error("PDF parse error:", parseError);
+      return res.status(400).json({
+        error:
+          "PDF parsing is unavailable on the server. Please paste your text directly in the notes field instead!",
       });
     }
   }
 
   // Get the actual text content
-  const contentText = text || presetKey || pdfText || "";
+  const contentText = text || pdfText || presetKey || "";
 
   if (!contentText) {
     return res.status(400).json({
@@ -38,14 +46,22 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const prompt = `You are a quiz generator. Based on the following text, generate ${count} ${mode} questions at ${difficulty} difficulty level. Return ONLY a valid JSON array, no markdown, no explanation, no backticks.
+    const prompt = `You are an expert quiz and flashcard generator for students.
 
-Text: ${contentText.substring(0, 8000)}
+STUDY MATERIAL:
+${contentText.substring(0, 8000)}
+
+INSTRUCTIONS:
+- Generate exactly ${count} items based ONLY on the study material above
+- Difficulty level: ${difficulty}
+- Do NOT generate questions about JSON, arrays, formatting, or data structures
+- Questions must be strictly about the actual content of the study material
+- Return ONLY a valid JSON array with no markdown, no explanation, no backticks
 
 ${
   mode === "flashcards"
-    ? `Format: [{"question": "term, concept, or question", "answer": "definition, explanation, or answer", "hint": "optional hint if helpful"}]`
-    : `Format: [{"question": "the question text", "options": ["option 1", "option 2", "option 3", "option 4"], "correctAnswerIndex": 0, "explanation": "explanation of why the correct option is right"}]`
+    ? `Format: [{"question": "concept or term from the material", "answer": "definition or explanation from the material", "hint": "optional helpful hint"}]`
+    : `Format: [{"question": "question about the study material", "options": ["option 1", "option 2", "option 3", "option 4"], "correctAnswerIndex": 0, "explanation": "why this answer is correct based on the material"}]`
 }`;
 
     const response = await fetch(
@@ -66,9 +82,7 @@ ${
     );
 
     const data = await response.json();
-
-    // Log the full raw response as requested
-    console.log("Full raw OpenRouter response:", JSON.stringify(data, null, 2));
+    console.log("OpenRouter response:", JSON.stringify(data, null, 2));
 
     // Safety check on OpenRouter response
     if (!data.choices || !data.choices[0]) {
@@ -78,26 +92,30 @@ ${
     }
 
     const rawText = data.choices[0].message.content;
-    const cleaned = rawText.replace(/```json|```/g, "").trim();
+
+    // Clean up markdown code blocks if present
+    const cleaned = rawText
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
 
     let rawQuestions;
     try {
       rawQuestions = JSON.parse(cleaned);
     } catch (parseError: any) {
       throw new Error(
-        `Failed to parse JSON. Error: ${parseError.message}. Raw text returned: ${rawText}`,
+        `Failed to parse AI response as JSON. Raw response: ${rawText.substring(0, 500)}`,
       );
     }
 
     if (!Array.isArray(rawQuestions)) {
-      throw new Error(
-        "OpenRouter response did not contain a valid JSON array.",
-      );
+      throw new Error("AI response did not return a valid array of questions.");
     }
 
-    // Map and sanitize items to match exactly what types.ts and App.tsx expect
+    // Map and sanitize to match what App.tsx expects
     const questions = rawQuestions.map((item: any, idx: number) => {
       const id = item.id || `gen-${mode}-${idx}-${Date.now()}`;
+
       if (mode === "flashcards") {
         return {
           id,
@@ -106,34 +124,33 @@ ${
           hint: item.hint || "",
         };
       } else {
+        const options = Array.isArray(item.options) ? item.options : [];
         let correctIdx =
           typeof item.correctAnswerIndex === "number"
             ? item.correctAnswerIndex
             : 0;
-        const options = Array.isArray(item.options) ? item.options : [];
+
+        // Try to find correct answer by matching text if index not provided
         if (typeof item.correctAnswerIndex !== "number" && item.answer) {
           const foundIdx = options.findIndex(
             (opt: string) =>
               opt.toLowerCase().trim() === item.answer.toLowerCase().trim(),
           );
-          if (foundIdx !== -1) {
-            correctIdx = foundIdx;
-          }
+          if (foundIdx !== -1) correctIdx = foundIdx;
         }
+
         return {
           id,
           question: item.question || "",
           options,
           correctAnswerIndex: correctIdx,
           explanation:
-            item.explanation ||
-            item.citation ||
-            `Correct answer: ${options[correctIdx] || ""}`,
+            item.explanation || `Correct answer: ${options[correctIdx] || ""}`,
         };
       }
     });
 
-    // Match what frontend expects: { success: true, [flashcards or quiz]: questions, topic, summary }
+    // Return what frontend expects
     res.status(200).json({
       success: true,
       [mode === "flashcards" ? "flashcards" : "quiz"]: questions,
@@ -141,6 +158,7 @@ ${
       summary: `Generated ${count} ${mode} questions at ${difficulty} difficulty.`,
     });
   } catch (err: any) {
+    console.error("Generation error:", err.message);
     res.status(500).json({ error: err.message });
   }
 }
