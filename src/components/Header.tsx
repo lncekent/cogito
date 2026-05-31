@@ -140,7 +140,7 @@ export default function Header({
               </div>
             </button>
             <div className="flex items-center space-x-3">
-              <div className="h-9 w-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden">
+              <div className=" hidden h-9 w-9 rounded-xl bg-slate-900 lg:flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden">
                 <GraduationCap className="h-5 w-5 text-slate-100" />
               </div>
               <div className="flex flex-col text-left">
@@ -345,9 +345,14 @@ export default function Header({
                   <div className="h-8 w-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden">
                     <GraduationCap className="h-4 w-4 text-slate-100" />
                   </div>
-                  <span className="font-display font-bold text-md tracking-tight text-slate-950">
-                    Cogito
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-display font-bold text-lg tracking-tight text-slate-950">
+                      Cogito
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-widest bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-medium">
+                      V1.0
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}

@@ -135,6 +135,18 @@ export default function AuthPage({
 
   return (
     <div className="max-w-md mx-auto py-8 px-4 sm:px-6 text-left animate-fade-in relative z-10">
+      {/* Return back home pointer */}
+      <div className="text-center mb-4">
+        <button
+          onClick={onBackToApp}
+          className="inline-flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-900"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span className="underline cursor-pointer">
+            Return back to Study materials
+          </span>
+        </button>
+      </div>
       {/* Brand logo header */}
       <div className="text-center mb-4">
         <div className="flex items-center justify-center gap-3">
@@ -154,18 +166,7 @@ export default function AuthPage({
           and historic workspace synchs.
         </p> */}
       </div>
-      {/* Return back home pointer */}
-      <div className="text-center mb-4">
-        <button
-          onClick={onBackToApp}
-          className="inline-flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-900"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span className="underline cursor-pointer">
-            Return back to Study materials
-          </span>
-        </button>
-      </div>
+
       {/* Supabase Status Helper banner */}
       {!isSupabaseConfigured && (
         <div className="mb-6 bg-slate-50 border border-slate-200/60 rounded-2xl p-4 text-[11px] text-slate-600 leading-normal">
