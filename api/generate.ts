@@ -1,3 +1,6 @@
+// @ts-ignore
+import pdf from "pdf-parse";
+
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -6,24 +9,52 @@ export default async function handler(req: any, res: any) {
   const { mode, count, difficulty, text, fileBase64, fileName, presetKey } =
     req.body;
 
-  // Get the actual text content
-  const contentText = text || presetKey || "";
+  let pdfText = "";
+  if (fileBase64) {
+    const cleanBase64 = fileBase64.replace(
+      /^data:application\/pdf;base64,/,
+      "",
+    );
+    const buffer = Buffer.from(cleanBase64, "base64");
+    try {
+      const pdfData = await pdf(buffer);
+      pdfText = pdfData.text || "";
+    } catch (parseError: any) {
+      console.error("PDF text extraction failed:", parseError);
+      return res.status(500).json({
+        error: "Failed to extract text from PDF: " + parseError.message,
+      });
+    }
+  }
 
-  if (!contentText && !fileBase64) {
-    return res.status(400).json({ error: "No content provided" });
+  // Get the actual text content
+  const contentText = text || presetKey || pdfText || "";
+
+  if (!contentText) {
+    return res.status(400).json({
+      error:
+        "No content or readable text was found. Please upload a selectable text PDF or write/paste some notes.",
+    });
   }
 
   try {
-    const prompt = `You are a quiz generator. Based on the following text, generate ${count} ${mode} questions at ${difficulty} difficulty level. Return ONLY a valid JSON array, no markdown, no explanation, no backticks.
+    const prompt = `You are an expert quiz generator for students.
 
-Text: ${contentText.substring(0, 3000)}
+STUDY MATERIAL:
+${contentText.substring(0, 8000)}
+
+INSTRUCTIONS:
+- Generate exactly ${count} questions based ONLY on the study material above
+- Difficulty level: ${difficulty}
+- Do NOT generate questions about JSON, arrays, or data formats
+- Questions must be about the actual content of the study material
+- Return ONLY a valid JSON array, no markdown, no backticks
 
 ${
   mode === "flashcards"
-    ? `Format: [{"question": "term, concept, or question", "answer": "definition, explanation, or answer", "hint": "optional hint if helpful"}]`
-    : `Format: [{"question": "the question text", "options": ["option 1", "option 2", "option 3", "option 4"], "correctAnswerIndex": 0, "explanation": "explanation of why the correct option is right"}]`
+    ? `Format: [{"question": "concept from study material", "answer": "explanation from study material", "hint": "optional hint"}]`
+    : `Format: [{"question": "question about study material", "options": ["option 1", "option 2", "option 3", "option 4"], "correctAnswerIndex": 0, "explanation": "why this is correct based on the material"}]`
 }`;
-
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -42,7 +73,7 @@ ${
     );
 
     const data = await response.json();
-    
+
     // Log the full raw response as requested
     console.log("Full raw OpenRouter response:", JSON.stringify(data, null, 2));
 
@@ -55,18 +86,20 @@ ${
 
     const rawText = data.choices[0].message.content;
     const cleaned = rawText.replace(/```json|```/g, "").trim();
-    
+
     let rawQuestions;
     try {
       rawQuestions = JSON.parse(cleaned);
     } catch (parseError: any) {
       throw new Error(
-        `Failed to parse JSON. Error: ${parseError.message}. Raw text returned: ${rawText}`
+        `Failed to parse JSON. Error: ${parseError.message}. Raw text returned: ${rawText}`,
       );
     }
 
     if (!Array.isArray(rawQuestions)) {
-      throw new Error("OpenRouter response did not contain a valid JSON array.");
+      throw new Error(
+        "OpenRouter response did not contain a valid JSON array.",
+      );
     }
 
     // Map and sanitize items to match exactly what types.ts and App.tsx expect
@@ -80,11 +113,15 @@ ${
           hint: item.hint || "",
         };
       } else {
-        let correctIdx = typeof item.correctAnswerIndex === "number" ? item.correctAnswerIndex : 0;
+        let correctIdx =
+          typeof item.correctAnswerIndex === "number"
+            ? item.correctAnswerIndex
+            : 0;
         const options = Array.isArray(item.options) ? item.options : [];
         if (typeof item.correctAnswerIndex !== "number" && item.answer) {
-          const foundIdx = options.findIndex((opt: string) => 
-            opt.toLowerCase().trim() === item.answer.toLowerCase().trim()
+          const foundIdx = options.findIndex(
+            (opt: string) =>
+              opt.toLowerCase().trim() === item.answer.toLowerCase().trim(),
           );
           if (foundIdx !== -1) {
             correctIdx = foundIdx;
@@ -95,7 +132,10 @@ ${
           question: item.question || "",
           options,
           correctAnswerIndex: correctIdx,
-          explanation: item.explanation || item.citation || `Correct answer: ${options[correctIdx] || ""}`,
+          explanation:
+            item.explanation ||
+            item.citation ||
+            `Correct answer: ${options[correctIdx] || ""}`,
         };
       }
     });
