@@ -602,8 +602,8 @@ export default function App() {
               <img src="favicon.svg" className="lg:w-5 w-8" />
               <span>@ 2026 Lance Magollado • Synaptic Study Synthesis.</span>
             </p>
-            {/* <span className="hidden sm:inline text-slate-200">|</span> */}
-            {/* <div className="flex items-center space-x-3 text-slate-500">
+            <span className="hidden sm:inline text-slate-200">|</span>
+            <div className="flex items-center space-x-3 text-slate-500">
               <button
                 onClick={goHome}
                 className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${!showAbout && !showAuth && !showHistory && !showGuide ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
@@ -624,7 +624,7 @@ export default function App() {
               >
                 Guide
               </button>
-            </div> */}
+            </div>
           </div>
 
           <p className="flex items-center space-x-2">
