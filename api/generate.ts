@@ -38,23 +38,16 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const prompt = `You are an expert quiz generator for students.
+    const prompt = `You are a quiz generator. Based on the following text, generate ${count} ${mode} questions at ${difficulty} difficulty level. Return ONLY a valid JSON array, no markdown, no explanation, no backticks.
 
-STUDY MATERIAL:
-${contentText.substring(0, 8000)}
-
-INSTRUCTIONS:
-- Generate exactly ${count} questions based ONLY on the study material above
-- Difficulty level: ${difficulty}
-- Do NOT generate questions about JSON, arrays, or data formats
-- Questions must be about the actual content of the study material
-- Return ONLY a valid JSON array, no markdown, no backticks
+Text: ${contentText.substring(0, 8000)}
 
 ${
   mode === "flashcards"
-    ? `Format: [{"question": "concept from study material", "answer": "explanation from study material", "hint": "optional hint"}]`
-    : `Format: [{"question": "question about study material", "options": ["option 1", "option 2", "option 3", "option 4"], "correctAnswerIndex": 0, "explanation": "why this is correct based on the material"}]`
+    ? `Format: [{"question": "term, concept, or question", "answer": "definition, explanation, or answer", "hint": "optional hint if helpful"}]`
+    : `Format: [{"question": "the question text", "options": ["option 1", "option 2", "option 3", "option 4"], "correctAnswerIndex": 0, "explanation": "explanation of why the correct option is right"}]`
 }`;
+
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
