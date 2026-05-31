@@ -448,9 +448,7 @@ export default function UploadZone({
         >
           <Sparkles className="h-4 w-4 animate-pulse text-indigo-300" />
           <span>
-            {isLoading
-              ? "Synthesizing study artifacts..."
-              : "Instruct AI to Generate"}
+            {isLoading ? "Synthesizing study artifacts..." : "Instruct Now"}
           </span>
         </button>
       </form>

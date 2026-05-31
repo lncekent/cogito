@@ -504,8 +504,8 @@ export default function App() {
       <footer className="border-t border-slate-100 bg-white/40 py-4 relative z-10 text-center text-[11px] text-slate-400 font-mono tracking-wide">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 ">
-            <p className="flex items-center space-x-3">
-              <GraduationCap className="h-3.5 w-3.5 text-slate-700" />
+            <p className="flex lg:flex-row flex-col lg:items-left items-center space-x-3 lg:gap-0 gap-3">
+              <img src="favicon.svg" className="lg:w-5 w-8" />
               <span>@ 2026 Lance Magollado • Synaptic Study Synthesis.</span>
             </p>
             <span className="hidden sm:inline text-slate-200">|</span>
@@ -541,7 +541,7 @@ export default function App() {
               target="_blank"
               rel="noreferrer"
             >
-              <span>View Developer's Other Projects</span>
+              <span>View Developer's Other Works</span>
               <ArrowUpRight className="h-2.5 w-2.5" />
             </a>
           </p>

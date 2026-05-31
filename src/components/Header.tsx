@@ -204,13 +204,13 @@ export default function Header({
             <div className="flex items-center space-x-1">
               <button
                 onClick={onLoginClick}
-                className="px-3 py-1.5 text-xs font-mono font-bold text-slate-600 hover:text-slate-950 transition-all cursor-pointer"
+                className="px-3 py-1.5 lg:block hidden text-xs font-mono font-bold text-slate-600 hover:text-slate-950 transition-all cursor-pointer"
               >
                 Log In
               </button>
               <button
                 onClick={onSignUpClick}
-                className="px-3 py-1.5 lg:block hidden text-xs font-mono font-bold text-white bg-slate-950 hover:bg-slate-900 rounded-xl transition-all cursor-pointer"
+                className="px-3 py-1.5  text-xs font-mono font-bold text-white bg-slate-950 hover:bg-slate-900 rounded-xl transition-all cursor-pointer"
               >
                 Sign Up
               </button>
