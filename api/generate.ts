@@ -35,7 +35,7 @@ ${
           "X-Title": "Cogito",
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-3.3-8b-instruct:free",
+          model: "nvidia/nemotron-3-super-120b-a12b:free",
           messages: [{ role: "user", content: prompt }],
         }),
       },
