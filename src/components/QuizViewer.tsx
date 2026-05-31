@@ -35,9 +35,31 @@ export default function QuizViewer({
   const [score, setScore] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
 
-  // States to audit individual responses on evaluation summary list
-  const activeQuestion = quiz[currentIdx];
+  const activeQuestion = quiz && quiz.length > 0 ? quiz[currentIdx] : null;
   const isSelected = selectedAnswers[currentIdx] !== undefined;
+
+  if (!activeQuestion) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-4 text-center">
+        <div className="text-left mb-6 border-b border-slate-100 pb-5">
+          <span className="text-[10px] bg-slate-950 text-white font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full font-bold">
+            Assessment Test
+          </span>
+          <h2 className="text-2xl font-display font-extrabold text-slate-950 mt-1">{topic}</h2>
+          <p className="text-xs text-slate-500 font-sans mt-0.5 max-w-xl">{summary}</p>
+        </div>
+        <div className="bg-white border border-slate-100 rounded-3xl p-8 shadow-sm">
+          <p className="text-sm text-slate-500">No quiz questions are available in this study session.</p>
+          <button 
+            onClick={onBack} 
+            className="mt-4 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleOptionSelect = (optionIndex: number) => {
     if (isAnswered[currentIdx]) return; // Stop re-answering once checked
