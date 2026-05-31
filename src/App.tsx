@@ -116,9 +116,7 @@ export default function App() {
       supabase.auth.getUser().then(({ data }) => {
         if (data.user?.email) {
           applyUserProfile(data.user);
-          if (
-            window.sessionStorage.getItem(GOOGLE_AUTH_PENDING_KEY) === "1"
-          ) {
+          if (window.sessionStorage.getItem(GOOGLE_AUTH_PENDING_KEY) === "1") {
             window.sessionStorage.removeItem(GOOGLE_AUTH_PENDING_KEY);
             const metadata = data.user.user_metadata || {};
             showToast({
@@ -336,7 +334,8 @@ export default function App() {
       showToast({
         type: "info",
         title: "Logged out",
-        message: "You are back in guest mode. You can still generate reviewers.",
+        message:
+          "You are back in guest mode. You can still generate reviewers.",
       });
     } catch (err: any) {
       showToast({
@@ -470,6 +469,11 @@ export default function App() {
           onHistoryClick={goToHistory}
           onGuideClick={goToGuide}
           onLogout={() => setShowLogoutDialog(true)}
+          activeSection={showAbout ? "about" : "home"}
+          onNavigate={(section) => {
+            if (section === "home") goHome();
+            else if (section === "about") goToAbout();
+          }}
         />
       )}
 
@@ -598,8 +602,8 @@ export default function App() {
               <img src="favicon.svg" className="lg:w-5 w-8" />
               <span>@ 2026 Lance Magollado • Synaptic Study Synthesis.</span>
             </p>
-            <span className="hidden sm:inline text-slate-200">|</span>
-            <div className="flex items-center space-x-3 text-slate-500">
+            {/* <span className="hidden sm:inline text-slate-200">|</span> */}
+            {/* <div className="flex items-center space-x-3 text-slate-500">
               <button
                 onClick={goHome}
                 className={`transition-colors hover:text-slate-900 font-semibold cursor-pointer ${!showAbout && !showAuth && !showHistory && !showGuide ? "text-indigo-600 underline decoration-2 underline-offset-2" : ""}`}
@@ -620,7 +624,7 @@ export default function App() {
               >
                 Guide
               </button>
-            </div>
+            </div> */}
           </div>
 
           <p className="flex items-center space-x-2">

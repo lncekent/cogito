@@ -117,7 +117,7 @@ export default function Guide({ onBackToHome }: GuideProps) {
             </h2>
             <div className="space-y-4">
               <div className="flex gap-3">
-                <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                <div className="h-5 w-5 rounded-full bg-slate-100 shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
                   1
                 </div>
                 <div>
@@ -131,7 +131,7 @@ export default function Guide({ onBackToHome }: GuideProps) {
                 </div>
               </div>
               <div className="flex gap-3">
-                <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                <div className="h-5 w-5 rounded-full bg-slate-100 shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
                   2
                 </div>
                 <div>
@@ -146,7 +146,7 @@ export default function Guide({ onBackToHome }: GuideProps) {
                 </div>
               </div>
               <div className="flex gap-3">
-                <div className="h-5 w-5 rounded-full bg-slate-100 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                <div className="h-5 w-5 rounded-full bg-slate-100 shrink-0 flex items-center justify-center text-[10px] font-bold text-slate-600">
                   3
                 </div>
                 <div>

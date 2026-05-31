@@ -22,6 +22,8 @@ interface HeaderProps {
   onLogout?: () => void;
   onHistoryClick?: () => void;
   onGuideClick?: () => void;
+  activeSection?: "home" | "about";
+  onNavigate?: (section: "home" | "about") => void;
 }
 
 export default function Header({
@@ -37,6 +39,8 @@ export default function Header({
   onLogout,
   onHistoryClick,
   onGuideClick,
+  activeSection = "home",
+  onNavigate,
 }: HeaderProps) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -100,6 +104,29 @@ export default function Header({
             </p>
           </div>
         </div>
+        {/* Middle Section */}
+        <nav className="hidden md:flex items-center space-x-6">
+          <button
+            onClick={() => onNavigate?.("home")}
+            className={`text-[13px] font-display font-bold tracking-wide transition-all px-3 py-1.5 rounded-lg cursor-pointer ${
+              activeSection === "home"
+                ? "text-black bg-indigo-50/50"
+                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            Home
+          </button>
+          <button
+            onClick={() => onNavigate?.("about")}
+            className={`text-[13px] font-display font-bold tracking-wide transition-all px-3 py-1.5 rounded-lg cursor-pointer ${
+              activeSection === "about"
+                ? "text-black bg-indigo-50/50"
+                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            About the Developer
+          </button>
+        </nav>
 
         {/* Right Actions */}
         <div className="flex items-center space-x-2">
