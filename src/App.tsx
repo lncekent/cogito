@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "./components/Header";
 import UploadZone from "./components/UploadZone";
 import Loader from "./components/Loader";
@@ -15,8 +15,24 @@ import {
   Difficulty,
   GenerationResponse,
 } from "./types";
-import { GraduationCap, ArrowUpRight, Info } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  CheckCircle2,
+  Info,
+  LogOut,
+  X,
+} from "lucide-react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
+
+type ToastState = {
+  id: number;
+  type: "success" | "info";
+  title: string;
+  message: string;
+};
+
+const GOOGLE_AUTH_PENDING_KEY = "cogito_google_auth_pending";
 
 export default function App() {
   const [activeMode, setActiveMode] = useState<AppMode>("quiz");
@@ -38,11 +54,31 @@ export default function App() {
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState<"login" | "signup" | null>(null);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const toastTimerRef = useRef<number | null>(null);
 
   const scrollToPageTop = () => {
     window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     });
+  };
+
+  const showToast = (nextToast: Omit<ToastState, "id">) => {
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+
+    setToast({
+      ...nextToast,
+      id: Date.now(),
+    });
+
+    toastTimerRef.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, 3600);
   };
 
   const applyUserProfile = (user: any | null) => {
@@ -67,11 +103,32 @@ export default function App() {
   };
 
   useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     // Listen to real-time session updates from Supabase
     if (isSupabaseConfigured && supabase) {
       supabase.auth.getUser().then(({ data }) => {
         if (data.user?.email) {
           applyUserProfile(data.user);
+          if (
+            window.sessionStorage.getItem(GOOGLE_AUTH_PENDING_KEY) === "1"
+          ) {
+            window.sessionStorage.removeItem(GOOGLE_AUTH_PENDING_KEY);
+            const metadata = data.user.user_metadata || {};
+            showToast({
+              type: "success",
+              title: "Logged in successfully",
+              message: `Welcome back, ${
+                metadata.full_name || metadata.name || data.user.email
+              }.`,
+            });
+          }
         }
       });
 
@@ -264,6 +321,34 @@ export default function App() {
     scrollToPageTop();
   };
 
+  const confirmLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError) throw signOutError;
+      }
+
+      applyUserProfile(null);
+      setShowLogoutDialog(false);
+      goHome();
+      showToast({
+        type: "info",
+        title: "Logged out",
+        message: "You are back in guest mode. You can still generate reviewers.",
+      });
+    } catch (err: any) {
+      showToast({
+        type: "info",
+        title: "Could not log out",
+        message: err.message || "Please try signing out again.",
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   const goToAbout = () => {
     setShowAbout(true);
     setShowGuide(false);
@@ -384,13 +469,7 @@ export default function App() {
           onSignUpClick={() => goToAuth("signup")}
           onHistoryClick={goToHistory}
           onGuideClick={goToGuide}
-          onLogout={async () => {
-            if (isSupabaseConfigured && supabase) {
-              await supabase.auth.signOut();
-            }
-            applyUserProfile(null);
-            setShowHistory(false);
-          }}
+          onLogout={() => setShowLogoutDialog(true)}
         />
       )}
 
@@ -409,10 +488,15 @@ export default function App() {
             initialMode={showAuth}
             onBackToApp={goHome}
             onAuthSuccess={async (email, id) => {
+              let welcomeName = email;
+
               if (isSupabaseConfigured && supabase) {
                 const { data } = await supabase.auth.getUser();
                 if (data.user) {
                   applyUserProfile(data.user);
+                  const metadata = data.user.user_metadata || {};
+                  welcomeName =
+                    metadata.full_name || metadata.name || data.user.email;
                 } else {
                   setUserEmail(email);
                   if (id) setUserId(id);
@@ -421,8 +505,14 @@ export default function App() {
                 setUserEmail(email);
                 if (id) setUserId(id);
               }
+
               setShowAuth(null);
               scrollToPageTop();
+              showToast({
+                type: "success",
+                title: "Logged in successfully",
+                message: `Welcome back, ${welcomeName}.`,
+              });
             }}
           />
         ) : isLoading ? (
@@ -547,6 +637,100 @@ export default function App() {
           </p>
         </div>
       </footer>
+
+      {toast && (
+        <div className="fixed right-4 top-4 z-70 w-[calc(100%-2rem)] max-w-sm animate-fade-in">
+          <div
+            className={`flex items-start gap-3 rounded-2xl border bg-white/95 p-4 shadow-lg shadow-slate-200/70 backdrop-blur ${
+              toast.type === "success"
+                ? "border-emerald-100"
+                : "border-indigo-100"
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            <div
+              className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                toast.type === "success"
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-indigo-50 text-indigo-600"
+              }`}
+            >
+              {toast.type === "success" ? (
+                <CheckCircle2 className="h-4 w-4" />
+              ) : (
+                <Info className="h-4 w-4" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1 text-left">
+              <p className="font-display text-sm font-bold text-slate-950">
+                {toast.title}
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                {toast.message}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              className="rounded-lg p-1 text-slate-300 transition-colors hover:bg-slate-50 hover:text-slate-600 cursor-pointer"
+              aria-label="Dismiss notification"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showLogoutDialog && (
+        <div
+          className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/30 px-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="logout-dialog-title"
+        >
+          <div className="w-full max-w-sm rounded-3xl border border-slate-100 bg-white p-6 text-left shadow-2xl shadow-slate-950/10 animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <h2
+                  id="logout-dialog-title"
+                  className="font-display text-lg font-extrabold tracking-tight text-slate-950"
+                >
+                  Log out of Cogito?
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  Your saved history stays connected to your account. You can
+                  still generate flashcards and quizzes as a guest after logging
+                  out.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setShowLogoutDialog(false)}
+                disabled={isLoggingOut}
+                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60 cursor-pointer"
+              >
+                Stay Logged In
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                disabled={isLoggingOut}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-60 cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span>{isLoggingOut ? "Logging Out..." : "Log Out"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -222,7 +222,7 @@ export default function Header({
           {onGuideClick && (
             <button
               onClick={onGuideClick}
-              className="flex lg:block hidden items-center h-8 px-3 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-xs text-indigo-700 font-bold transition-all cursor-pointer border border-indigo-100/50"
+              className="lg:block hidden items-center h-8 px-3 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-xs text-indigo-700 font-bold transition-all cursor-pointer border border-indigo-100/50"
             >
               <BookOpen className="h-3.5 w-3.5" />
               <span className="hidden xs:inline">System Guide</span>

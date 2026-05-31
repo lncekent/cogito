@@ -101,13 +101,17 @@ export default function AuthPage({
 
     if (isSupabaseConfigured && supabase) {
       try {
+        window.sessionStorage.setItem("cogito_google_auth_pending", "1");
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
             redirectTo: window.location.origin,
           },
         });
-        if (error) throw error;
+        if (error) {
+          window.sessionStorage.removeItem("cogito_google_auth_pending");
+          throw error;
+        }
       } catch (err: any) {
         setErrorMsg(
           err.message || "Failed to trigger Google authentication provider.",
