@@ -20,8 +20,8 @@ Text: ${contentText.substring(0, 3000)}
 
 ${
   mode === "flashcards"
-    ? `Format: [{"front": "term or concept", "back": "definition or explanation"}]`
-    : `Format: [{"question": "...", "answer": "...", "options": ["...", "...", "...", "..."]}]`
+    ? `Format: [{"question": "term, concept, or question", "answer": "definition, explanation, or answer", "hint": "optional hint if helpful"}]`
+    : `Format: [{"question": "the question text", "options": ["option 1", "option 2", "option 3", "option 4"], "correctAnswerIndex": 0, "explanation": "explanation of why the correct option is right"}]`
 }`;
 
     const response = await fetch(
@@ -42,6 +42,9 @@ ${
     );
 
     const data = await response.json();
+    
+    // Log the full raw response as requested
+    console.log("Full raw OpenRouter response:", JSON.stringify(data, null, 2));
 
     // Safety check on OpenRouter response
     if (!data.choices || !data.choices[0]) {
@@ -52,12 +55,55 @@ ${
 
     const rawText = data.choices[0].message.content;
     const cleaned = rawText.replace(/```json|```/g, "").trim();
-    const questions = JSON.parse(cleaned);
+    
+    let rawQuestions;
+    try {
+      rawQuestions = JSON.parse(cleaned);
+    } catch (parseError: any) {
+      throw new Error(
+        `Failed to parse JSON. Error: ${parseError.message}. Raw text returned: ${rawText}`
+      );
+    }
 
-    // Match what frontend expects
+    if (!Array.isArray(rawQuestions)) {
+      throw new Error("OpenRouter response did not contain a valid JSON array.");
+    }
+
+    // Map and sanitize items to match exactly what types.ts and App.tsx expect
+    const questions = rawQuestions.map((item: any, idx: number) => {
+      const id = item.id || `gen-${mode}-${idx}-${Date.now()}`;
+      if (mode === "flashcards") {
+        return {
+          id,
+          question: item.question || item.front || "",
+          answer: item.answer || item.back || "",
+          hint: item.hint || "",
+        };
+      } else {
+        let correctIdx = typeof item.correctAnswerIndex === "number" ? item.correctAnswerIndex : 0;
+        const options = Array.isArray(item.options) ? item.options : [];
+        if (typeof item.correctAnswerIndex !== "number" && item.answer) {
+          const foundIdx = options.findIndex((opt: string) => 
+            opt.toLowerCase().trim() === item.answer.toLowerCase().trim()
+          );
+          if (foundIdx !== -1) {
+            correctIdx = foundIdx;
+          }
+        }
+        return {
+          id,
+          question: item.question || "",
+          options,
+          correctAnswerIndex: correctIdx,
+          explanation: item.explanation || item.citation || `Correct answer: ${options[correctIdx] || ""}`,
+        };
+      }
+    });
+
+    // Match what frontend expects: { success: true, [flashcards or quiz]: questions, topic, summary }
     res.status(200).json({
       success: true,
-      questions,
+      [mode === "flashcards" ? "flashcards" : "quiz"]: questions,
       topic: fileName || presetKey || "Study Session",
       summary: `Generated ${count} ${mode} questions at ${difficulty} difficulty.`,
     });
