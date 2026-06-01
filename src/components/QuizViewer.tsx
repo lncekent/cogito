@@ -154,7 +154,7 @@ export default function QuizViewer({
 
         <button
           onClick={onBack}
-          className="mt-3 sm:mt-0 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold self-start"
+          className="mt-3 sm:mt-0 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold self-start shrink-0"
         >
           New Evaluation
         </button>
