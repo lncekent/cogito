@@ -38,6 +38,12 @@ export default function QuizViewer({
   const activeQuestion = quiz && quiz.length > 0 ? quiz[currentIdx] : null;
   const isSelected = selectedAnswers[currentIdx] !== undefined;
 
+  const scrollToQuizTop = () => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    });
+  };
+
   if (!activeQuestion) {
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 text-center">
@@ -45,13 +51,19 @@ export default function QuizViewer({
           <span className="text-[10px] bg-slate-950 text-white font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full font-bold">
             Assessment Test
           </span>
-          <h2 className="text-2xl font-display font-extrabold text-slate-950 mt-1">{topic}</h2>
-          <p className="text-xs text-slate-500 font-sans mt-0.5 max-w-xl">{summary}</p>
+          <h2 className="text-2xl font-display font-extrabold text-slate-950 mt-1">
+            {topic}
+          </h2>
+          <p className="text-xs text-slate-500 font-sans mt-0.5 max-w-xl">
+            {summary}
+          </p>
         </div>
         <div className="bg-white border border-slate-100 rounded-3xl p-8 shadow-sm">
-          <p className="text-sm text-slate-500">No quiz questions are available in this study session.</p>
-          <button 
-            onClick={onBack} 
+          <p className="text-sm text-slate-500">
+            No quiz questions are available in this study session.
+          </p>
+          <button
+            onClick={onBack}
             className="mt-4 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
           >
             Go Back
@@ -83,8 +95,10 @@ export default function QuizViewer({
   const handleNext = () => {
     if (currentIdx < quiz.length - 1) {
       setCurrentIdx(currentIdx + 1);
+      scrollToQuizTop();
     } else {
       setQuizFinished(true);
+      scrollToQuizTop();
     }
   };
 
@@ -94,6 +108,7 @@ export default function QuizViewer({
     setIsAnswered({});
     setScore(0);
     setQuizFinished(false);
+    scrollToQuizTop();
   };
 
   // Score metrics
@@ -122,10 +137,10 @@ export default function QuizViewer({
   const alphabet = ["A", "B", "C", "D"];
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 text-left">
+    <div className="w-full max-w-4xl mx-auto py-6 px-4 sm:px-6 text-left">
       {/* Quiz Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5 mb-6">
-        <div>
+        <div className="w-full">
           <span className="text-[10px] bg-slate-950 text-white font-mono uppercase tracking-widest px-2.5 py-0.5 rounded-full font-bold">
             Assessment Test
           </span>

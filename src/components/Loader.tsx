@@ -6,7 +6,7 @@ const LOADING_STATUSES = [
   "Formatting structure of pages...",
   "Running high-relevance semantic analysis...",
   "Extracting vital educational parameters...",
-  "Generating multi-option questions with Gemini 3.5 Flash...",
+  "Generating multi-option questions with AI...",
   "Curating logical distractor answers...",
   "Validating correctness of pedagogical citations...",
   "Rendering final state-flipped canvas elements...",
@@ -59,7 +59,7 @@ export default function Loader() {
         </div>
 
         <p className="text-[10px] text-slate-400 font-mono mt-8">
-          Powered by Gemini 3.5 Flash • Context Grounding
+          Powered by AI • Context Grounding
         </p>
       </div>
     </div>

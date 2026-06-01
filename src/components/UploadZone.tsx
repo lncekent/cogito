@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { PDFParse } from "pdf-parse";
 import {
   FileText,
   Upload,
@@ -14,6 +15,10 @@ import {
   Milestone,
 } from "lucide-react";
 import { AppMode, Difficulty } from "../types";
+
+PDFParse.setWorker(
+  "https://cdn.jsdelivr.net/npm/pdf-parse@2.4.5/dist/pdf-parse/web/pdf.worker.mjs",
+);
 
 interface UploadZoneProps {
   onGenerate: (params: {
@@ -43,13 +48,13 @@ export default function UploadZone({
   const [count, setCount] = useState<number>(5);
   const [text, setText] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
-  const [fileBase64, setFileBase64] = useState<string>("");
+  const [pdfText, setPdfText] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDragActive, setIsDragActive] = useState<boolean>(false);
+  const [isParsingPdf, setIsParsingPdf] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Convert File to Base64 safely
-  const handleFileChange = (selectedFile: File) => {
+  const handleFileChange = async (selectedFile: File) => {
     if (selectedFile.type !== "application/pdf") {
       setErrorMessage(
         "Only PDF study materials are currently supported. Please upload a valid .pdf file.",
@@ -66,16 +71,33 @@ export default function UploadZone({
 
     setErrorMessage("");
     setFile(selectedFile);
+    setPdfText("");
+    setIsParsingPdf(true);
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const resultString = reader.result as string;
-      setFileBase64(resultString);
-    };
-    reader.onerror = () => {
-      setErrorMessage("Failed to read the file. Please try again.");
-    };
-    reader.readAsDataURL(selectedFile);
+    let parser: PDFParse | null = null;
+    try {
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      parser = new PDFParse({ data: new Uint8Array(arrayBuffer) });
+      const result = await parser.getText();
+      const extractedText = result.text.trim();
+
+      if (!extractedText) {
+        throw new Error(
+          "This PDF does not contain readable text. Try a text-based PDF or paste the notes directly.",
+        );
+      }
+
+      setPdfText(extractedText);
+    } catch (err: any) {
+      setFile(null);
+      setPdfText("");
+      setErrorMessage(
+        err.message || "Failed to read the PDF text. Please try another file.",
+      );
+    } finally {
+      await parser?.destroy();
+      setIsParsingPdf(false);
+    }
   };
 
   const onDragOver = (e: React.DragEvent) => {
@@ -98,7 +120,7 @@ export default function UploadZone({
 
   const removeFile = () => {
     setFile(null);
-    setFileBase64("");
+    setPdfText("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -116,12 +138,19 @@ export default function UploadZone({
       );
       return;
     }
+    if (file && !pdfText.trim()) {
+      setErrorMessage(
+        isParsingPdf
+          ? "Please wait until the PDF text is ready."
+          : "No readable text was extracted from this PDF. Paste the notes directly or try another file.",
+      );
+      return;
+    }
     onGenerate({
       mode,
       count,
       difficulty,
-      text: text.trim() ? text : undefined,
-      fileBase64: fileBase64 ? fileBase64 : undefined,
+      text: file ? pdfText : text.trim(),
       fileName: file ? file.name : undefined,
     });
   };
@@ -443,12 +472,16 @@ export default function UploadZone({
         {/* Big Action Call Button */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || isParsingPdf}
           className="w-full flex items-center justify-center space-x-2 py-4 px-6 rounded-2xl bg-slate-950 text-white font-semibold text-xs tracking-wider uppercase transition-all duration-300 hover:bg-slate-900 active:scale-[0.985] disabled:opacity-50 shadow-sm disabled:pointer-events-none group"
         >
           <Sparkles className="h-4 w-4 animate-pulse text-indigo-300" />
           <span>
-            {isLoading ? "Synthesizing study artifacts..." : "Instruct Now"}
+            {isLoading
+              ? "Synthesizing study artifacts..."
+              : isParsingPdf
+                ? "Reading PDF text..."
+                : "Instruct Now"}
           </span>
         </button>
       </form>

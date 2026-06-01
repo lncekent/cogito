@@ -33,6 +33,7 @@ type ToastState = {
 };
 
 const GOOGLE_AUTH_PENDING_KEY = "cogito_google_auth_pending";
+const MAX_GENERATION_TEXT_CHARS = 24000;
 
 export default function App() {
   const [activeMode, setActiveMode] = useState<AppMode>("quiz");
@@ -250,15 +251,41 @@ export default function App() {
     setActiveMode(params.mode);
 
     try {
+      const requestParams = {
+        ...params,
+        text: params.text
+          ? params.text.slice(0, MAX_GENERATION_TEXT_CHARS)
+          : undefined,
+        fileBase64: undefined,
+      };
+
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(params),
+        body: JSON.stringify(requestParams),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: GenerationResponse;
+
+      try {
+        data = responseText ? JSON.parse(responseText) : { success: false };
+      } catch {
+        if (response.status === 413) {
+          throw new Error(
+            "The uploaded content is too large for Vercel. Try a smaller PDF or paste a shorter section of notes.",
+          );
+        }
+
+        throw new Error(
+          response.ok
+            ? "The server returned an invalid response. Please try again."
+            : responseText ||
+                "The server rejected the request before generation could start.",
+        );
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(

@@ -1,7 +1,7 @@
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: "10mb",
+      sizeLimit: "4mb",
     },
   },
 };
@@ -15,7 +15,7 @@ export default async function handler(req: any, res: any) {
 
   // Frontend already extracts PDF text and sends it as "text"
   // No server-side PDF parsing needed!
-  const contentText = text || presetKey || "";
+  const contentText = (text || presetKey || "").slice(0, 24000);
 
   if (!contentText) {
     return res.status(400).json({
@@ -60,8 +60,27 @@ ${
       },
     );
 
-    const data = await response.json();
+    const responseText = await response.text();
+    let data: any;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      throw new Error(
+        response.ok
+          ? "OpenRouter returned a non-JSON response."
+          : `OpenRouter request failed with status ${response.status}: ${responseText.slice(0, 200)}`,
+      );
+    }
     console.log("OpenRouter response:", JSON.stringify(data, null, 2));
+
+    if (!response.ok) {
+      throw new Error(
+        data.error?.message ||
+          data.error ||
+          `OpenRouter request failed with status ${response.status}.`,
+      );
+    }
 
     if (!data.choices || !data.choices[0]) {
       throw new Error(

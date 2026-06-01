@@ -241,6 +241,122 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
+async function generateWithOpenRouter(params: {
+  mode: "flashcards" | "quiz";
+  difficulty: string;
+  count: number;
+  text: string;
+  fileName?: string;
+}) {
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) {
+    throw new Error("OPENROUTER_API_KEY environment variable is not configured.");
+  }
+
+  const prompt = `You are an expert quiz and flashcard generator for students.
+
+STUDY MATERIAL:
+${params.text.slice(0, 8000)}
+
+INSTRUCTIONS:
+- Generate exactly ${params.count} items based ONLY on the study material above
+- Difficulty level: ${params.difficulty}
+- Do NOT generate questions about JSON, arrays, formatting, or data structures
+- Questions must be strictly about the actual content of the study material
+- Return ONLY a valid JSON array with no markdown, no explanation, no backticks
+
+${
+  params.mode === "flashcards"
+    ? `Format: [{"question": "concept or term from the material", "answer": "definition or explanation from the material", "hint": "optional helpful hint"}]`
+    : `Format: [{"question": "question about the study material", "options": ["option 1", "option 2", "option 3", "option 4"], "correctAnswerIndex": 0, "explanation": "why this answer is correct based on the material"}]`
+}`;
+
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": process.env.APP_URL || "http://localhost:3000",
+      "X-Title": "Cogito",
+    },
+    body: JSON.stringify({
+      model: "openai/gpt-oss-120b:free",
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  const responseText = await response.text();
+  let data: any;
+
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new Error(
+      response.ok
+        ? "OpenRouter returned a non-JSON response."
+        : `OpenRouter request failed with status ${response.status}: ${responseText.slice(0, 200)}`,
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data.error?.message ||
+        data.error ||
+        `OpenRouter request failed with status ${response.status}.`,
+    );
+  }
+
+  const rawText = data.choices?.[0]?.message?.content;
+  if (!rawText) {
+    throw new Error("OpenRouter returned an empty response.");
+  }
+
+  const cleaned = rawText
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+  const rawItems = JSON.parse(cleaned);
+
+  if (!Array.isArray(rawItems)) {
+    throw new Error("AI response did not return a valid array.");
+  }
+
+  const generatedItems = rawItems.map((item: any, idx: number) => {
+    const id = item.id || `gen-${params.mode}-${idx}-${Date.now()}`;
+
+    if (params.mode === "flashcards") {
+      return {
+        id,
+        question: item.question || item.front || "",
+        answer: item.answer || item.back || "",
+        hint: item.hint || "",
+      };
+    }
+
+    const options = Array.isArray(item.options) ? item.options : [];
+    return {
+      id,
+      question: item.question || "",
+      options,
+      correctAnswerIndex:
+        typeof item.correctAnswerIndex === "number"
+          ? item.correctAnswerIndex
+          : 0,
+      explanation:
+        item.explanation ||
+        `Correct answer: ${options[item.correctAnswerIndex || 0] || ""}`,
+    };
+  });
+
+  return {
+    success: true,
+    topic: params.fileName || "Study Session",
+    summary: `Generated ${params.count} ${params.mode} items at ${params.difficulty} difficulty.`,
+    flashcards: params.mode === "flashcards" ? generatedItems : undefined,
+    quiz: params.mode === "quiz" ? generatedItems : undefined,
+  };
+}
+
 // REST API endpoint to generate quizzes/flashcards
 app.post("/api/generate", async (req, res) => {
   try {
@@ -266,6 +382,17 @@ app.post("/api/generate", async (req, res) => {
         success: false,
         error: "Please upload a study material PDF or paste study notes."
       });
+    }
+
+    if (!process.env.GEMINI_API_KEY && process.env.OPENROUTER_API_KEY && text) {
+      const openRouterResult = await generateWithOpenRouter({
+        mode,
+        difficulty,
+        count,
+        text,
+        fileName,
+      });
+      return res.json(openRouterResult);
     }
 
     // Initialize Gemini SDK

@@ -184,15 +184,6 @@ export default function Header({
 
           {/* Right Actions */}
           <div className="flex items-center space-x-2">
-            {onResetAll && (
-              <button
-                onClick={onResetAll}
-                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all"
-              >
-                <RefreshCw className="h-3 w-3" />
-                <span className="hidden sm:inline">Start Fresh</span>
-              </button>
-            )}
 
             {/* User Auth Section */}
             {userEmail ? (
@@ -327,7 +318,7 @@ export default function Header({
             <div
               className={`absolute inset-0 bg-slate-950/40 transition-all duration-500 ease-in-out ${
                 isMobileMenuOpen
-                  ? "opacity-100 backdrop-blur-[4px] pointer-events-auto"
+                  ? "opacity-100 backdrop-blur-xs pointer-events-auto"
                   : "opacity-0 backdrop-blur-none pointer-events-none"
               }`}
               onClick={() => setIsMobileMenuOpen(false)}
@@ -335,7 +326,7 @@ export default function Header({
 
             {/* Drawer Content: Slide in from left, occupying half/a portion of screen vertically */}
             <div
-              className={`absolute inset-y-0 left-0 w-[300px] max-w-[85vw] bg-white shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
+              className={`absolute inset-y-0 left-0 w-75 max-w-[85vw] bg-white shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
                 isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
               }`}
             >
