@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { PDFParse } from "pdf-parse";
+import { motion } from "motion/react";
 import {
   FileText,
   Upload,
